@@ -17,3 +17,10 @@ Features include:
 3. Function to convert compartment suffixes.
 4. Import from a Excel file or csv file.
 5. ID match without special characters
+
+Notes
+~~~~~
+
+BiGG has limited curation so some metabolites have more than one formula and/or charge. One model with really
+weird formulas (hundreds of Carbon atoms), others with different number of hydrogen (but not always a
+different charge), some with unknown formula (R)
