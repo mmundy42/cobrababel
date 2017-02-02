@@ -1,9 +1,9 @@
-cobra-babel
-===========
+cobrababel: COBRA Model Translator
+==================================
 
-Metabolic models are available from many sources but each source uses a different ID namespace. That makes
-combining and comparing models from different sources difficult. cobra-babel provides functions to translate
-between ID namespaces and convert metabolic models to a common ID namespace. cobra-babel supports the
+Metabolic models are available from many sources and different sources use different ID namespaces. That makes
+combining and comparing models from different sources difficult. cobrababel provides functions to translate
+between ID namespaces and convert metabolic models to a common ID namespace. cobrababel supports the
 following namespaces:
 
 1. `ModelSEED <http://modelseed.org>`_
@@ -21,6 +21,9 @@ Features include:
 Notes
 ~~~~~
 
-BiGG has limited curation so some metabolites have more than one formula and/or charge. One model with really
-weird formulas (hundreds of Carbon atoms), others with different number of hydrogen (but not always a
-different charge), some with unknown formula (R)
+1. In BiGG, universal metabolites can have more than one formula if different models use a different formula
+   for a metabolite with the same ID (same situation can occur with charge). Currently, cobrababel blindly
+   picks the first formula in the list of formulae for a universal metabolite.
+2. In BiGG, universal metabolites have a list of all the compartments where the metabolite is used. Currently,
+   cobrababel assumes that all compartment IDs are defined the same across all models. For example, compartment
+   ID "c" means "cytosol" in all BiGG models.
