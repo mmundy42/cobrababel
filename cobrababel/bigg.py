@@ -35,8 +35,8 @@ def create_bigg_universal_model(file_name=None, validate=False):
     version = response.json()
 
     # Create an empty model.
-    model = Model('bigg_universal', name='BiGG universal model {0}'.format(version['bigg_models_version']))
-    model.notes['last_updated'] = version['last_updated']
+    universal = Model('bigg_universal', name='BiGG universal model {0}'.format(version['bigg_models_version']))
+    universal.notes['last_updated'] = version['last_updated']
 
     # Get the list of universal metabolites.
     response = requests.get(BIGG_URL + 'universal/metabolites')
@@ -70,7 +70,7 @@ def create_bigg_universal_model(file_name=None, validate=False):
                 bigg_metabolite['formula'] = bigg_metabolite['formulae'][0]
             if len(bigg_metabolite['charges']) > 0:
                 bigg_metabolite['charge'] = bigg_metabolite['charges'][0]
-            metabolite = add_bigg_metabolite(bigg_metabolite, model)
+            metabolite = add_bigg_metabolite(bigg_metabolite, universal)
 
             # @todo Still need to figure out how to handle multiple formulae
             if len(bigg_metabolite['formulae']) > 1:
@@ -89,7 +89,7 @@ def create_bigg_universal_model(file_name=None, validate=False):
     for index in range(len(reaction_list)):
         if index % PAUSE_COUNT == 0:
             sleep(1)  # Be nice to BiGG data API and take a breath
-        add_bigg_reaction(get_bigg_reaction(reaction_list[index]['bigg_id']), model)
+        add_bigg_reaction(get_bigg_reaction(reaction_list[index]['bigg_id']), universal)
 
     # If requested, validate the COBRA model.
     if validate:
@@ -97,9 +97,9 @@ def create_bigg_universal_model(file_name=None, validate=False):
 
     # If requested, save the COBRA model.
     if file_name is not None:
-        save_json_model(model, file_name)
+        save_json_model(universal, file_name)
 
-    return model
+    return universal
 
 
 def create_cobra_model_from_bigg_model(bigg_id, file_name=None, validate=False):

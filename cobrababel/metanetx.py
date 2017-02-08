@@ -31,7 +31,7 @@ def create_metanetx_universal_model(file_name=None, validate=False, verbose=Fals
     """
 
     # Create an empty model.
-    model = Model('metanetx_universal', name='MetaNetX universal model')
+    universal = Model('metanetx_universal', name='MetaNetX universal model')
 
     # Download the metabolites file.
     response = requests.get('{0}chem_prop.tsv'.format(metanetx_url))
@@ -70,7 +70,7 @@ def create_metanetx_universal_model(file_name=None, validate=False, verbose=Fals
         metabolite.notes['InChI'] = fields[field_names['InChI']]
         metabolite.notes['SMILES'] = fields[field_names['SMILES']]
         metabolite.notes['source'] = fields[field_names['Source']]
-        model.add_metabolites([metabolite])
+        universal.add_metabolites([metabolite])
 
     # Download the reactions file.
     response = requests.get('{0}reac_prop.tsv'.format(metanetx_url))
@@ -99,7 +99,7 @@ def create_metanetx_universal_model(file_name=None, validate=False, verbose=Fals
             continue
 
         # Create cobra.Reaction from MetaNetX reaction.
-        metabolites = _parse_equation(fields[field_names['Equation']], model)
+        metabolites = _parse_equation(fields[field_names['Equation']], universal)
         if metabolites is None:
             if verbose:
                 warn('Could not parse equation for reaction {0} on line {1}: {2}'
@@ -120,7 +120,7 @@ def create_metanetx_universal_model(file_name=None, validate=False, verbose=Fals
                 if verbose:
                     warn('Could not parse source for {0}: {1}'
                          .format(fields[field_names['MNX_ID']], fields[field_names['Source']]))
-        model.add_reaction(reaction)
+        universal.add_reaction(reaction)
 
     # If requested, validate the COBRA model.
     if validate:
@@ -128,9 +128,9 @@ def create_metanetx_universal_model(file_name=None, validate=False, verbose=Fals
 
     # If requested, save the COBRA model.
     if file_name is not None:
-        save_json_model(model, file_name)
+        save_json_model(universal, file_name)
 
-    return model
+    return universal
 
 
 def _parse_equation(equation, model):
