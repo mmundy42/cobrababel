@@ -3,22 +3,20 @@ import io
 from warnings import warn
 from time import sleep
 from cobra import Model, Metabolite, Reaction
-from cobra.io import load_json_model, save_json_model
+from cobra.io import load_json_model
 
 # Base URL for BiGG website
-BIGG_URL = 'http://bigg.ucsd.edu/api/v2/'
+bigg_url = 'http://bigg.ucsd.edu/api/v2/'
 
 # Pause after this many requests to BiGG data API
 PAUSE_COUNT = 250
 
 
-def create_bigg_universal_model(file_name=None, validate=False):
+def create_bigg_universal_model(validate=False):
     """ Create an universal model from BiGG universal reactions and metabolites.
 
     Parameters
     ----------
-    file_name : str, optional
-        Path to file for saving universal COBRA model in JSON format
     validate : bool, optional
         When True, perform validity checks on universal COBRA model
 
@@ -29,7 +27,7 @@ def create_bigg_universal_model(file_name=None, validate=False):
     """
 
     # Get the current version number for the BiGG database.
-    response = requests.get(BIGG_URL + 'database_version')
+    response = requests.get(bigg_url + 'database_version')
     if response.status_code != requests.codes.OK:
         response.raise_for_status()
     version = response.json()
@@ -39,7 +37,7 @@ def create_bigg_universal_model(file_name=None, validate=False):
     universal.notes['last_updated'] = version['last_updated']
 
     # Get the list of universal metabolites.
-    response = requests.get(BIGG_URL + 'universal/metabolites')
+    response = requests.get(bigg_url + 'universal/metabolites')
     if response.status_code != requests.codes.OK:
         response.raise_for_status()
     metabolite_list = response.json()['results']
@@ -80,7 +78,7 @@ def create_bigg_universal_model(file_name=None, validate=False):
                 metabolite.notes['charges'] = bigg_metabolite['charges']
 
     # Get the list of universal reactions.
-    response = requests.get(BIGG_URL + 'universal/reactions')
+    response = requests.get(bigg_url + 'universal/reactions')
     if response.status_code != requests.codes.OK:
         response.raise_for_status()
     reaction_list = response.json()['results']
@@ -95,22 +93,16 @@ def create_bigg_universal_model(file_name=None, validate=False):
     if validate:
         warn('Coming soon')
 
-    # If requested, save the COBRA model.
-    if file_name is not None:
-        save_json_model(universal, file_name)
-
     return universal
 
 
-def create_cobra_model_from_bigg_model(bigg_id, file_name=None, validate=False):
+def create_cobra_model_from_bigg_model(bigg_id, validate=False):
     """ Create a COBRA model from a BiGG model.
 
     Parameters
     ----------
     bigg_id: str
         ID of BiGG model
-    file_name : str, optional
-        Path to file for saving COBRA model in JSON format
     validate : bool, optional
         When True, perform validity checks on COBRA model
 
@@ -121,12 +113,12 @@ def create_cobra_model_from_bigg_model(bigg_id, file_name=None, validate=False):
     """
 
     # Download the JSON representation and details of the model from BiGG.
-    response = requests.get('{0}models/{1}'.format(BIGG_URL, bigg_id))
+    response = requests.get('{0}models/{1}'.format(bigg_url, bigg_id))
     if response.status_code != requests.codes.OK:
         response.raise_for_status()
     details = response.json()
 
-    response = requests.get('{0}models/{1}/download'.format(BIGG_URL, bigg_id))
+    response = requests.get('{0}models/{1}/download'.format(bigg_url, bigg_id))
     if response.status_code != requests.codes.OK:
         response.raise_for_status()
 
@@ -155,10 +147,6 @@ def create_cobra_model_from_bigg_model(bigg_id, file_name=None, validate=False):
     if validate:
         warn('Coming soon')
 
-    # If requested, save the COBRA model.
-    if file_name is not None:
-        save_json_model(model, file_name)
-
     return model
 
 
@@ -174,7 +162,7 @@ def get_bigg_model_list():
         List of models available from BiGG website
     """
 
-    response = requests.get(BIGG_URL + 'models')
+    response = requests.get(bigg_url + 'models')
     if response.status_code != requests.codes.OK:
         response.raise_for_status()
     return response.json()['results']
@@ -197,9 +185,9 @@ def get_bigg_metabolite(bigg_id, model_bigg_id='universal'):
     """
 
     if model_bigg_id == 'universal':
-        url = '{0}universal/metabolites/{1}'.format(BIGG_URL, bigg_id)
+        url = '{0}universal/metabolites/{1}'.format(bigg_url, bigg_id)
     else:
-        url = '{0}models/{1}/metabolites/{2}'.format(BIGG_URL, model_bigg_id, bigg_id)
+        url = '{0}models/{1}/metabolites/{2}'.format(bigg_url, model_bigg_id, bigg_id)
     response = requests.get(url)
     if response.status_code != requests.codes.OK:
         response.raise_for_status()
@@ -254,9 +242,9 @@ def get_bigg_reaction(bigg_id, model_bigg_id='universal'):
     """
 
     if model_bigg_id == 'universal':
-        url = '{0}universal/reactions/{1}'.format(BIGG_URL, bigg_id)
+        url = '{0}universal/reactions/{1}'.format(bigg_url, bigg_id)
     else:
-        url = '{0}models/{1}/reactions/{2}'.format(BIGG_URL, model_bigg_id, bigg_id)
+        url = '{0}models/{1}/reactions/{2}'.format(bigg_url, model_bigg_id, bigg_id)
     response = requests.get(url)
     if response.status_code != requests.codes.OK:
         response.raise_for_status()

@@ -3,7 +3,6 @@ from warnings import warn
 import re
 
 from cobra import Model, Metabolite, Reaction
-from cobra.io import save_json_model
 
 # Base URL for MetaNetX website
 metanetx_url = 'http://www.metanetx.org/cgi-bin/mnxget/mnxref/'
@@ -12,13 +11,11 @@ metanetx_url = 'http://www.metanetx.org/cgi-bin/mnxget/mnxref/'
 metabolite_re = re.compile(r'(\d*\.\d+|\d+) (MNXM\d+)')
 
 
-def create_metanetx_universal_model(file_name=None, validate=False, verbose=False):
+def create_metanetx_universal_model(validate=False, verbose=False):
     """ Create an universal model from MetaNetX universal reactions and metabolites.
 
     Parameters
     ----------
-    file_name : str, optional
-        Path to file for saving universal COBRA model in JSON format
     validate : bool, optional
         When True, perform validity checks on universal COBRA model
     verbose : bool, optional
@@ -125,10 +122,6 @@ def create_metanetx_universal_model(file_name=None, validate=False, verbose=Fals
     # If requested, validate the COBRA model.
     if validate:
         warn('Coming soon')
-
-    # If requested, save the COBRA model.
-    if file_name is not None:
-        save_json_model(universal, file_name)
 
     return universal
 
