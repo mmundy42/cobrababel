@@ -9,6 +9,7 @@ following namespaces:
 1. `ModelSEED <http://modelseed.org>`_
 2. `Virtual Metabolic Human <http://vmh.uni.lu/>`_ (VMH)
 3. `Biochemical, Genetic and Genomic knowledge base <http://bigg.ucsd.edu/>`_ (BiGG)
+4. `MetaNetX <http://www.metanetx.org/>`_
 
 Features include:
 
@@ -52,3 +53,21 @@ how exchange and transport reactions are defined.
 
 All reactions are defined as bi-directional so the lower and upper bounds are set to the
 default values `(-1000.0, 1000.0)` for all reactions.
+
+VMH Notes
+~~~~~~~~~
+
+VMH provides a SEED2VMH_translation.csv file which is not current with the translation table
+in Supplementary Table 15 in the AGORA paper. Supplementary Table 15 is provided as an
+Excel workbook which was parsed into two files: (1) vmh_metabolite_xref.tsv and
+(2) vmh_reaction_xref.tsv.
+
+References
+----------
+
+BiGG
+
+MetaNetX.org: a website and repository for accessing, analyzing and manipulating metabolic networks.
+Bioinformatics (2013)
+
+VMH
