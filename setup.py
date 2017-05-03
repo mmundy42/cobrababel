@@ -1,27 +1,12 @@
-from os.path import abspath, dirname, join
-from sys import argv, path
 from setuptools import setup, find_packages
-
-# To temporarily modify sys.path
-SETUP_DIR = abspath(dirname(__file__))
-
-# Import version to get_kegg_records the version string
-path.insert(0, join(SETUP_DIR, 'cobrababel'))
-from version import get_version, update_release_version
-path.pop(0)
-version = get_version(pep440=True)
-
-# If building something for distribution, ensure the VERSION
-# file is up to date
-if 'sdist' in argv or 'bdist_wheel' in argv:
-    update_release_version()
 
 requirements = [
     'cobra>=0.5.4'
     'six>=1.9.0',
     'pandas>=0.18.0',
     'fuzzywuzzy>=0.10.0',
-    'requests'
+    'requests',
+    'tabulate'
 ]
 
 try:
@@ -32,7 +17,7 @@ except:
 
 setup(
     name='cobrababel',
-    version=version,
+    version='0.1.0',
     packages=find_packages(),
     setup_requires=[],
     install_requires=requirements,
@@ -45,7 +30,7 @@ setup(
     license='BSD',
     keywords='metabolism biology optimization flux balance analysis fba',
     url='https://github.com/mmundy42/cobrababel',
-    # download_url='https://pypi.python.org/pypi/modelseed',
+    download_url='https://pypi.python.org/pypi/cobrababel',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
