@@ -1,6 +1,7 @@
 import requests
 from warnings import warn
 import re
+import logging
 
 from cobra import Model, Metabolite, Reaction
 
@@ -9,6 +10,9 @@ metanetx_url = 'http://www.metanetx.org/cgi-bin/mnxget/mnxref/'
 
 # Regular expression for metabolites in reaction equation
 metabolite_re = re.compile(r'(\d*\.\d+|\d+) (MNXM\d+)')
+
+# Logger for this module
+LOGGER = logging.getLogger(__name__)
 
 
 def create_metanetx_universal_model(validate=False, verbose=False):
@@ -31,9 +35,11 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     universal = Model('metanetx_universal', name='MetaNetX universal model')
 
     # Download the metabolites file.
+    LOGGER.info('Started download of metabolite file')
     response = requests.get('{0}chem_prop.tsv'.format(metanetx_url))
     if response.status_code != requests.codes.OK:
         response.raise_for_status()
+    LOGGER.info('Finished download of metabolite file')
     metabolite_list = response.text.split('\n')
 
     # Map field names to column numbers (hopefully MetaNetX doesn't change this).
@@ -49,6 +55,7 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     }
 
     # Add all of the universal metabolites from the list.
+    LOGGER.info('Started creating metabolite objects from %d lines in file', len(metabolite_list))
     for index in range(len(metabolite_list)):
         if len(metabolite_list[index]) == 0 or metabolite_list[index][0] == '#':
             continue  # Skip empty lines and comment lines
@@ -68,11 +75,14 @@ def create_metanetx_universal_model(validate=False, verbose=False):
         metabolite.notes['SMILES'] = fields[field_names['SMILES']]
         metabolite.notes['source'] = fields[field_names['Source']]
         universal.add_metabolites([metabolite])
+    LOGGER.info('Finished adding %d metabolites', len(universal.metabolites))
 
     # Download the reactions file.
+    LOGGER.info('Started download of reaction file')
     response = requests.get('{0}reac_prop.tsv'.format(metanetx_url))
     if response.status_code != requests.codes.OK:
         response.raise_for_status()
+    LOGGER.info('Finished download of reaction file')
     reaction_list = response.text.split('\n')
 
     # Map field names to column numbers (hopefully MetaNetX doesn't change this).
@@ -86,6 +96,7 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     }
 
     # Add all of the universal reactions from the list.
+    LOGGER.info('Started creating reaction objects from %d lines in file', len(reaction_list))
     for index in range(len(reaction_list)):
         if len(reaction_list[index]) == 0 or reaction_list[index][0] == '#':
             continue  # Skip empty lines and comment lines
@@ -118,6 +129,7 @@ def create_metanetx_universal_model(validate=False, verbose=False):
                     warn('Could not parse source for {0}: {1}'
                          .format(fields[field_names['MNX_ID']], fields[field_names['Source']]))
         universal.add_reaction(reaction)
+    LOGGER.info('Finished adding %d reactions', len(universal.reactions))
 
     # If requested, validate the COBRA model.
     if validate:
