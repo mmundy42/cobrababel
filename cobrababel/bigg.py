@@ -210,18 +210,30 @@ def add_bigg_metabolite(bigg_metabolite, model):
         Metabolite object created from BiGG metabolite
     """
 
-    metabolite = Metabolite(id='{0}_{1}'.format(bigg_metabolite['bigg_id'], bigg_metabolite['compartment_bigg_id']),
-                            name=bigg_metabolite['name'])
-    try:
-        metabolite.formula = bigg_metabolite['formula']
-        metabolite.charge = bigg_metabolite['charge']
-    except KeyError:
-        pass
+    # Available data is different for a metabolite from an organism model versus
+    # a metabolite from the universal model.
+    universal = True
+    if 'model_bigg_id' in bigg_metabolite:
+        universal = False
+    if universal:
+        compartment = bigg_metabolite['compartments_in_models'][0]['bigg_id']
+        compartment_name = 'unknown'
+        formula = bigg_metabolite['formulae'][0]
+        charge = bigg_metabolite['charges'][0]
+    else:
+        compartment = bigg_metabolite['compartment_bigg_id']
+        compartment_name = bigg_metabolite['compartment_name']
+        formula = bigg_metabolite['formula']
+        charge = bigg_metabolite['charge']
+
+    metabolite = Metabolite(id='{0}_{1}'.format(bigg_metabolite['bigg_id'], compartment),
+                            name=bigg_metabolite['name'], formula=formula, charge=charge,
+                            compartment=compartment)
     if len(bigg_metabolite['database_links']) > 0:
         metabolite.notes['aliases'] = bigg_metabolite['database_links']
     model.add_metabolites([metabolite])
-    if bigg_metabolite['compartment_bigg_id'] not in model.compartments:
-        model.compartments[bigg_metabolite['compartment_bigg_id']] = bigg_metabolite['compartment_name']
+    if compartment not in model.compartments:
+        model.compartments[compartment] = compartment_name
     return metabolite
 
 
@@ -271,6 +283,7 @@ def add_bigg_reaction(bigg_reaction, model):
     reaction.notes['aliases'] = bigg_reaction['database_links']
     metabolites = dict()
     for m in bigg_reaction['metabolites']:
+        # @todo Need to create metabolite objects as needed.
         metabolite = model.metabolites.get_by_id('{0}_{1}'.format(m['bigg_id'], m['compartment_bigg_id']))
         metabolites[metabolite] = m['stoichiometry']
     reaction.add_metabolites(metabolites)
