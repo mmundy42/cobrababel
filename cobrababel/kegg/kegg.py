@@ -217,4 +217,4 @@ def get_kegg_dna_seq(code, gene_list):
         List of lines in FASTA format with DNA sequence for specified genes
     """
 
-    return get_kegg_records(code, gene_list, option='naseq')
+    return get_kegg_records(code, gene_list, option='ntseq')
