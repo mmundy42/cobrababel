@@ -3,7 +3,7 @@ from warnings import warn
 import re
 import logging
 
-from cobra import Model, Metabolite, Reaction
+from cobra import Model, Metabolite, Reaction, DictList
 
 # Base URL for MetaNetX website
 metanetx_url = 'http://www.metanetx.org/cgi-bin/mnxget/mnxref/'
@@ -54,8 +54,14 @@ def create_metanetx_universal_model(validate=False, verbose=False):
         'Source': 7
     }
 
+    # Accumulate Metabolite objects separately because it is faster than adding
+    # metabolites one at a time.
+    reactions = DictList()
+
+    # Create Metabolite objects for all of the metabolites from the downloaded file.
     # Add all of the universal metabolites from the list.
-    LOGGER.info('Started creating metabolite objects from %d lines in file', len(metabolite_list))
+    LOGGER.info('Started creating Metabolite objects from %d lines in file', len(metabolite_list))
+    metabolites = DictList()
     for index in range(len(metabolite_list)):
         if len(metabolite_list[index]) == 0 or metabolite_list[index][0] == '#':
             continue  # Skip empty lines and comment lines
@@ -74,8 +80,12 @@ def create_metanetx_universal_model(validate=False, verbose=False):
         metabolite.notes['InChI'] = fields[field_names['InChI']]
         metabolite.notes['SMILES'] = fields[field_names['SMILES']]
         metabolite.notes['source'] = fields[field_names['Source']]
-        universal.add_metabolites([metabolite])
-    LOGGER.info('Finished adding %d metabolites', len(universal.metabolites))
+        metabolites.append(metabolite)
+    LOGGER.info('Finished creating %d Metabolite objects', len(metabolites))
+
+    # Add the metabolites to the universal model.
+    universal.add_metabolites(metabolites)
+    LOGGER.info('Finished adding Metabolite objects to universal model')
 
     # Download the reactions file.
     LOGGER.info('Started download of reaction file')
@@ -95,8 +105,12 @@ def create_metanetx_universal_model(validate=False, verbose=False):
         'Source': 5
     }
 
-    # Add all of the universal reactions from the list.
-    LOGGER.info('Started creating reaction objects from %d lines in file', len(reaction_list))
+    # Accumulate Reaction objects separately because it is faster than adding
+    # reactions one at a time.
+    reactions = DictList()
+
+    # Create Reaction objects for all of the reactions from the downloaded file.
+    LOGGER.info('Started creating Reaction objects from %d lines in file', len(reaction_list))
     for index in range(len(reaction_list)):
         if len(reaction_list[index]) == 0 or reaction_list[index][0] == '#':
             continue  # Skip empty lines and comment lines
@@ -114,7 +128,7 @@ def create_metanetx_universal_model(validate=False, verbose=False):
                      .format(fields[field_names['MNX_ID']], index, fields[field_names['Equation']]))
             continue
         reaction = Reaction(id=fields[field_names['MNX_ID']],
-                            name=fields[field_names['Description']],
+                            name=fields[field_names['MNX_ID']],
                             lower_bound=-1000.0,
                             upper_bound=1000.0)
         reaction.add_metabolites(metabolites)
@@ -128,8 +142,12 @@ def create_metanetx_universal_model(validate=False, verbose=False):
                 if verbose:
                     warn('Could not parse source for {0}: {1}'
                          .format(fields[field_names['MNX_ID']], fields[field_names['Source']]))
-        universal.add_reaction(reaction)
-    LOGGER.info('Finished adding %d reactions', len(universal.reactions))
+        reactions.append(reaction)
+    LOGGER.info('Finished creating %d Reaction objects', len(reactions))
+
+    # Add the reactions to the universal model.
+    universal.add_reactions(reactions)
+    LOGGER.info('Finished adding Reaction objects to universal model')
 
     # If requested, validate the COBRA model.
     if validate:
