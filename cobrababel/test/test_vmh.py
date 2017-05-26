@@ -13,4 +13,9 @@ class TestVirtualMetabolicHuman:
 
     def test_create_recon2(self):
         recon2 = cobrababel.create_cobra_model_from_vmh_recon2()
-        assert len(recon2.reactions) >= 99
+        assert len(recon2.metabolites) >= 5063
+        assert len(recon2.reactions) >= 7440
+        assert len(recon2.genes) >= 2140
+        solution = recon2.optimize()
+        assert solution.f == pytest.approx(3.198056)
+
