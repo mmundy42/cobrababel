@@ -55,13 +55,12 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     }
 
     # Accumulate Metabolite objects separately because it is faster than adding
-    # metabolites one at a time.
-    reactions = DictList()
+    # metabolites one at a time to a model.
+    metabolites = DictList()
 
     # Create Metabolite objects for all of the metabolites from the downloaded file.
     # Add all of the universal metabolites from the list.
     LOGGER.info('Started creating Metabolite objects from %d lines in file', len(metabolite_list))
-    metabolites = DictList()
     for index in range(len(metabolite_list)):
         if len(metabolite_list[index]) == 0 or metabolite_list[index][0] == '#':
             continue  # Skip empty lines and comment lines
@@ -106,7 +105,7 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     }
 
     # Accumulate Reaction objects separately because it is faster than adding
-    # reactions one at a time.
+    # reactions one at a time to a model.
     reactions = DictList()
 
     # Create Reaction objects for all of the reactions from the downloaded file.
