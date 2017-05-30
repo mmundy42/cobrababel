@@ -23,22 +23,23 @@ class TestBigg:
 
     def test_add_metabolite(self):
         model = Model('bigg_test')
-        cobrababel.add_bigg_metabolite(cobrababel.get_bigg_metabolite('10fthf'), model)
-        assert model.metabolites[0].id == '10fthf_c'
-        assert model.metabolites[0].name == '10-Formyltetrahydrofolate'
+        cobrababel.add_bigg_metabolites([cobrababel.get_bigg_metabolite('h2o_c', 'iAF1260')], model)
+        assert model.metabolites[0].id == 'h2o_c'
+        assert model.metabolites[0].name == 'H2O'
         assert model.metabolites[0].compartment == 'c'
-        cobrababel.add_bigg_metabolite(cobrababel.get_bigg_metabolite('h2o_c', 'iAF1260'), model)
-        assert model.metabolites[1].id == 'h2o_c'
-        assert model.metabolites[1].name == 'H2O'
+        cobrababel.add_bigg_metabolites([cobrababel.get_bigg_metabolite('10fthf')], model)
+        assert model.metabolites[1].id == '10fthf_c'
+        assert model.metabolites[1].name == '10-Formyltetrahydrofolate'
         assert model.metabolites[1].compartment == 'c'
+        assert model.compartments['c'] == 'cytosol'
 
     def test_add_reaction(self):
         model = Model('bigg_test')
-        cobrababel.add_bigg_metabolite(cobrababel.get_bigg_metabolite('cynt_p', 'iAF1260'), model)
-        cobrababel.add_bigg_metabolite(cobrababel.get_bigg_metabolite('h_p', 'iAF1260'), model)
-        cobrababel.add_bigg_metabolite(cobrababel.get_bigg_metabolite('cynt_c', 'iAF1260'), model)
-        cobrababel.add_bigg_metabolite(cobrababel.get_bigg_metabolite('h_c', 'iAF1260'), model)
-        cobrababel.add_bigg_reaction(cobrababel.get_bigg_reaction('CYNTt2pp', 'iAF1260'), model)
+        cobrababel.add_bigg_metabolites([cobrababel.get_bigg_metabolite('cynt_p', 'iAF1260'),
+                                         cobrababel.get_bigg_metabolite('h_p', 'iAF1260'),
+                                         cobrababel.get_bigg_metabolite('cynt_c', 'iAF1260'),
+                                         cobrababel.get_bigg_metabolite('h_c', 'iAF1260')], model)
+        cobrababel.add_bigg_reactions([cobrababel.get_bigg_reaction('CYNTt2pp', 'iAF1260')], model)
         assert model.reactions[0].id == 'CYNTt2pp'
         assert model.reactions[0].name == 'Cyanate transport via proton symport (periplasm)'
         assert model.reactions[0].reaction == 'cynt_p + h_p --> cynt_c + h_c'
