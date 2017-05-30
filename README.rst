@@ -80,7 +80,7 @@ MetaNetX Notes
 CobraBabel uses `MNXref Version 2015/09/03 <http://www.metanetx.org/mnxdoc/mnxref.html>`_.
 
 Some reactions are defined with unspecified stoichiometry coefficients, for example:
-`(2n) MNXM1471 + 1 MNXM3341 = (2n) MNXM1 + 1 MNXM4074 + (2n) MNXM537`. Currently,
+``(2n) MNXM1471 + 1 MNXM3341 = (2n) MNXM1 + 1 MNXM4074 + (2n) MNXM537``. Currently,
 CobraBabel does not include these reactions when creating an universal model.
 
 There are some reactions where there is a BIOMASS metabolite in the reaction
@@ -88,9 +88,9 @@ definition. But the BIOMASS metabolite is not defined so any reactions with the
 BIOMASS metabolite are not included in the universal model.
 
 If a reaction has a value in the Source field, there is only one source in the
-format: `source:id`. Sources include Rhea (rhea), KEGG (kegg), MetaCyc (metacyc),
+format: ``source:id``. Sources include Rhea (rhea), KEGG (kegg), MetaCyc (metacyc),
 UniPathway (upa), The Seed (seed), BiGG (bigg), BioPath (biopath), and Reactome
-(reactome). Set the `verbose` parameter when calling `create_metanetx_universal_model()`
+(reactome). Set the ``verbose`` parameter when calling ``create_metanetx_universal_model()``
 to show a warning for reactions with an invalid format in the Source field.
 
 There are no compartments so metabolites are defined without a compartment.
@@ -98,7 +98,7 @@ There are no compartments so metabolites are defined without a compartment.
 There are no names for reactions so the reaction name is set to the reaction ID.
 
 All reactions are defined as bi-directional so the lower and upper bounds are
-set to the default values `(-1000.0, 1000.0)` for all reactions.
+set to the default values ``(-1000.0, 1000.0)`` for all reactions.
 
 KEGG Notes
 ^^^^^^^^^^
