@@ -37,7 +37,7 @@ def compare_models(model1, model2, details=None, boundary=False):
     model2 : cobra.core.Model
         Second model to analyze
     details : set, optional
-        When specified, print details on given types of differences
+        When specified, print details on given types of differences (see other compare functions)
     boundary : bool, optional
         When true, print info about boundary reactions
     """
@@ -63,6 +63,12 @@ def compare_models(model1, model2, details=None, boundary=False):
 def compare_reactions(reaction1, reaction2, details=None, id1='first', id2='second'):
     """ Compare two lists of cobra.core.Reaction objects and report differences.
 
+    To determine if two reactions are the same, the function compares the following 
+    attributes: (1) ID {'reaction_id'}, (2) name {'reaction_name'}, (3) bounds
+    {'reaction_bounds'}, (4) definition {'reaction_definition'}, (5) gene reaction 
+    rule {'reaction_gpr'}. Include the value in {} in the details parameter to
+    display the details of reactions where the values are different.
+    
     Parameters
     ----------
     reaction1 : cobra.core.DictList
@@ -153,7 +159,7 @@ def compare_reactions(reaction1, reaction2, details=None, id1='first', id2='seco
                   for rxn in different_definition]
         print(tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
     print('{0} reactions with different genes'.format(len(different_genes)))
-    if 'reaction_gene' in details and len(different_genes) > 0:
+    if 'reaction_gpr' in details and len(different_genes) > 0:
         different_genes.sort(key=lambda x: x.id)
         output = [[rxn.id, rxn.gene_reaction_rule, reaction2.get_by_id(rxn.id).gene_reaction_rule]
                   for rxn in different_genes]
@@ -165,6 +171,12 @@ def compare_reactions(reaction1, reaction2, details=None, id1='first', id2='seco
 def compare_metabolites(metabolite1, metabolite2, details=None, id1='first', id2='second'):
     """ Compare two lists of cobra.core.Metabolite objects and report differences.
 
+    To determine if two metabolites are the same, the function compares the following 
+    attributes: (1) ID {'metabolite_id'}, (2) name {'metabolite_name'}, (3) formula
+    {'metabolite_formula'}, (4) charge {'metabolite_charge'}, (5) compartment 
+    {'metabolite_compartment'}. Include the value in {} in the details parameter to 
+    display the details of metabolites where the values are different.
+    
     Parameters
     ----------
     metabolite1 : cobra.core.DictList
@@ -261,6 +273,11 @@ def compare_metabolites(metabolite1, metabolite2, details=None, id1='first', id2
 def compare_genes(gene1, gene2, details=None, id1='first', id2='second'):
     """ Compare two lists of cobra.core.Gene objects and report differences.
 
+    To determine if two genes are the same, the function compares the following 
+    attributes: (1) ID {'gene_id'}, (2) name {'gene_name'}. Include the value 
+    in {} in the details parameter to display the details of genes where the 
+    values are different.
+    
     Parameters
     ----------
     gene1 : cobra.core.DictList
@@ -290,7 +307,7 @@ def compare_genes(gene1, gene2, details=None, id1='first', id2='second'):
         try:
             g2 = gene2.get_by_id(g1.id)
             num_matched += 1
-            if g1.name != g2.name:
+            if g1.name.lower() != g2.name.lower():
                 different_name.append(g1)
         except KeyError:
             gene_only_in_one.append(g1)
