@@ -17,7 +17,7 @@ except:
 
 setup(
     name='cobrababel',
-    version='0.1.0',
+    version='0.1.1',
     packages=find_packages(),
     setup_requires=[],
     install_requires=requirements,
