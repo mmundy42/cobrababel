@@ -6,7 +6,8 @@ requirements = [
     'pandas>=0.18.0',
     'fuzzywuzzy>=0.10.0',
     'requests',
-    'tabulate'
+    'tabulate',
+    'numpy>=1.6'
 ]
 
 try:

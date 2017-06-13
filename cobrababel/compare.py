@@ -4,6 +4,7 @@ import pandas as pd
 from tabulate import tabulate
 from cobra.core import DictList
 from warnings import warn
+from numpy import isclose
 
 from .util import format_long_string
 
@@ -106,7 +107,12 @@ def compare_reactions(reaction1, reaction2, details=None, id1='first', id2='seco
             if r1.bounds != r2.bounds:
                 different_bounds.append(r1)
             if r1.reaction != r2.reaction:
-                different_definition.append(r1)
+                different = False
+                for met, coefficient in iteritems(r1.metabolites):
+                    if not isclose(r2.get_coefficient(met.id), coefficient):
+                        different = True
+                if different:
+                    different_definition.append(r1)
             if r1.gene_reaction_rule != r2.gene_reaction_rule:
                 different_genes.append(r1)
         except KeyError:
@@ -137,7 +143,7 @@ def compare_reactions(reaction1, reaction2, details=None, id1='first', id2='seco
         reaction_only_in_two.sort(key=lambda x: x.id)
         output = [[rxn.id, format_long_string(rxn.name, 20), rxn.reaction]
                   for rxn in reaction_only_in_two]
-        print(tabulate(output, tablefmt='simple', headers=reaction_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=reaction_header) + '\n')
 
     # Display details on reaction attribute differences.
     print('{0} reactions with different names'.format(len(different_name)))
@@ -145,25 +151,25 @@ def compare_reactions(reaction1, reaction2, details=None, id1='first', id2='seco
         different_name.sort(key=lambda x: x.id)
         output = [[rxn.id, rxn.name, reaction2.get_by_id(rxn.id).name]
                   for rxn in different_name]
-        print(tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
     print('{0} reactions with different bounds'.format(len(different_bounds)))
     if 'reaction_bounds' in details and len(different_bounds) > 0:
         different_bounds.sort(key=lambda x: x.id)
         output = [[rxn.id, rxn.bounds, reaction2.get_by_id(rxn.id).bounds]
                   for rxn in different_bounds]
-        print(tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
     print('{0} reactions with different definitions'.format(len(different_definition)))
     if 'reaction_definition' in details and len(different_definition) > 0:
         different_definition.sort(key=lambda x: x.id)
         output = [[rxn.id, rxn.reaction, reaction2.get_by_id(rxn.id).reaction]
                   for rxn in different_definition]
-        print(tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
     print('{0} reactions with different genes'.format(len(different_genes)))
     if 'reaction_gpr' in details and len(different_genes) > 0:
         different_genes.sort(key=lambda x: x.id)
         output = [[rxn.id, rxn.gene_reaction_rule, reaction2.get_by_id(rxn.id).gene_reaction_rule]
                   for rxn in different_genes]
-        print(tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
 
     return
 
@@ -224,7 +230,7 @@ def compare_metabolites(metabolite1, metabolite2, details=None, id1='first', id2
     if 'metabolite_id' in details and len(metabolite_only_in_one) > 0:
         metabolite_only_in_one.sort(key=lambda x: x.id)
         output = [[met.id, format_long_string(met.name, 70)] for met in metabolite_only_in_one]
-        print(tabulate(output, tablefmt='simple', headers=metabolite_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=metabolite_header) + '\n')
 
     # See if metabolites from second model are in the first model.
     num_matched = 0
@@ -239,7 +245,7 @@ def compare_metabolites(metabolite1, metabolite2, details=None, id1='first', id2
     if 'metabolite_id' in details and len(metabolite_only_in_two) > 0:
         metabolite_only_in_two.sort(key=lambda x: x.id)
         output = [[met.id, format_long_string(met.name, 70)] for met in metabolite_only_in_two]
-        print(tabulate(output, tablefmt='simple', headers=metabolite_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=metabolite_header) + '\n')
 
     # Display details on metabolite attribute differences.
     print('{0} metabolites with different names'.format(len(different_name)))
@@ -247,25 +253,25 @@ def compare_metabolites(metabolite1, metabolite2, details=None, id1='first', id2
         different_name.sort(key=lambda x: x.id)
         output = [[met.id, met.name, metabolite2.get_by_id(met.id).name]
                   for met in different_name]
-        print(tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
     print('{0} metabolites with different formulas'.format(len(different_formula)))
     if 'metabolite_formula' in details and len(different_formula) > 0:
         different_formula.sort(key=lambda x: x.id)
         output = [[met.id, met.formula, metabolite2.get_by_id(met.id).formula]
                   for met in different_formula]
-        print(tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
     print('{0} metabolites with different charges'.format(len(different_charge)))
     if 'metabolite_charge' in details and len(different_charge) > 0:
         different_charge.sort(key=lambda x: x.id)
         output = [[met.id, met.charge, metabolite2.get_by_id(met.id).charge]
                   for met in different_charge]
-        print(tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
     print('{0} metabolites with different compartments'.format(len(different_compartment)))
     if 'metabolite_compartment' in details and len(different_compartment) > 0:
         different_compartment.sort(key=lambda x: x.id)
         output = [[met.id, met.compartment, metabolite2.get_by_id(met.id).compartment]
                   for met in different_compartment]
-        print(tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
 
     return
 
@@ -316,7 +322,7 @@ def compare_genes(gene1, gene2, details=None, id1='first', id2='second'):
     if 'gene_id' in details and len(gene_only_in_one) > 0:
         gene_only_in_one.sort(key=lambda x: x.id)
         output = [[gene.id, format_long_string(gene.name, 90)] for gene in gene_only_in_one]
-        print(tabulate(output, tablefmt='simple', headers=gene_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=gene_header) + '\n')
 
     # See if genes from second list are in the first list.
     num_matched = 0
@@ -327,11 +333,11 @@ def compare_genes(gene1, gene2, details=None, id1='first', id2='second'):
         else:
             gene_only_in_two.append(g2)
     print('{0} genes in both {1} and {2}'.format(num_matched, id1, id2))
-    print('{0} genes only in {1}'.format(len(gene_only_in_two), id2))
+    print('{0} genes only in {1}\n'.format(len(gene_only_in_two), id2))
     if 'gene_id' in details and len(gene_only_in_two) > 0:
         gene_only_in_two.sort(key=lambda x: x.id)
         output = [[gene.id, format_long_string(gene.name, 90)] for gene in gene_only_in_two]
-        print(tabulate(output, tablefmt='simple', headers=gene_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=gene_header) + '\n')
 
     # Display details on gene attribute differences.
     print('{0} genes with different names'.format(len(different_name)))
@@ -339,6 +345,6 @@ def compare_genes(gene1, gene2, details=None, id1='first', id2='second'):
         different_name.sort(key=lambda x: x.id)
         output = [[gene.id, gene.name, gene2.get_by_id(gene.id).name]
                   for gene in different_name]
-        print(tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
+        print('\n' + tabulate(output, tablefmt='simple', headers=difference_header) + '\n')
 
     return
