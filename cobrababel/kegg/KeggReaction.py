@@ -30,6 +30,7 @@ class KeggReaction:
         Orthology    Links to the corresponding KEGG ORTHOLOGY (KO) database entries.
         Module  Links to the corresponding KEGG MODULE database entries.
         Reference    References for the reaction.
+        DBLinks Links to outside databases
     """
     
     def __init__(self, record=None):
@@ -54,6 +55,7 @@ class KeggReaction:
         self.orthology = list()
         self.reference = list()
         self.module = list()
+        self.dblinks = list()
 
         if record is not None:
             self.parse(record)
@@ -95,6 +97,8 @@ class KeggReaction:
             reaction['reference'] = self.reference
         if len(self.module) > 0:
             reaction['module'] = self.module
+        if len(self.dblinks) > 0:
+            reaction['dblinks'] = self.dblinks
 
         return reaction
     
@@ -149,6 +153,8 @@ class KeggReaction:
                 self.reference.append(value)
             elif field_name == 'MODULE':
                 self.module.append([value[:7], value[9:].strip()])
+            elif field_name == 'DBLINKS':
+                self.dblinks.append(value)
             else:
                 warn('Skipping field {0} with value {1}'.format(field_name, value))
         return
@@ -218,5 +224,9 @@ class KeggReaction:
             record.append('MODULE      {0}  {1}'.format(self.module[0][0], self.module[0][1]))
             for index in range(1, len(self.module)):
                 record.append('            {0}  {1}'.format(self.module[index][0], self.module[index][1]))
+        if len(self.dblinks) > 0:
+            record.append('DBLINKS     {0}'.format(self.dblinks[0]))
+            for index in range(1, len(self.dblinks)):
+                record.append('            {0}'.format(self.dblinks[index]))
         record.append('///')
         return record
