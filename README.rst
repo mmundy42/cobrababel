@@ -77,23 +77,27 @@ separately.
 MetaNetX Notes
 ^^^^^^^^^^^^^^
 
-CobraBabel uses `MNXref Version 2015/09/03 <http://www.metanetx.org/mnxdoc/mnxref.html>`_.
+CobraBabel uses `MNXref Version 2017/05/04 <http://www.metanetx.org/mnxdoc/mnxref.html>`_.
 
-Some reactions are defined with unspecified stoichiometry coefficients, for example:
-``(2n) MNXM1471 + 1 MNXM3341 = (2n) MNXM1 + 1 MNXM4074 + (2n) MNXM537``. Currently,
-CobraBabel does not include these reactions when creating an universal model.
+The list of metabolites is very large and includes metabolites that are not used
+in any reaction. CobraBabel only includes metabolites that are used in a reaction
+when creating a universal model.
 
-There are some reactions where there is a BIOMASS metabolite in the reaction
-definition. But the BIOMASS metabolite is not defined so any reactions with the
-BIOMASS metabolite are not included in the universal model.
+Some reactions are defined with unspecified stoichiometry coefficients. For example,
+reaction MNXR109485 has the equation:
+``(2n) MNXM17@MNXD1 + 1 MNXM18575@MNXD1 = 1 MNXM1@MNXD1 + (n) MNXM47@MNXD1 + (n) MNXM87@MNXD1``.
+Currently, CobraBabel does not include these reactions when creating a universal model.
+
+A reaction equation is defined with metabolites in a generic compartment using
+the syntax ``MNXM17@MNXD1`` to identify the metabolite and compartment. CobraBabel
+replaces the "@" character with an "_" character in the metabolite ID when creating
+a universal model.
 
 If a reaction has a value in the Source field, there is only one source in the
 format: ``source:id``. Sources include Rhea (rhea), KEGG (kegg), MetaCyc (metacyc),
 UniPathway (upa), The Seed (seed), BiGG (bigg), BioPath (biopath), and Reactome
 (reactome). Set the ``verbose`` parameter when calling ``create_metanetx_universal_model()``
 to show a warning for reactions with an invalid format in the Source field.
-
-There are no compartments so metabolites are defined without a compartment.
 
 There are no names for reactions so the reaction name is set to the reaction ID.
 
@@ -123,6 +127,32 @@ one gets picked as the OTU representative.
 A sample OTU representative source file is provided in the "data/otu-reps.tsv" file
 which was retrieved from the KBase Central Data Model using the all_entities_OTU
 command.
+
+Release Notes
+-------------
+
+Version 0.1.3 (August 3, 2017)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Updated create_metanetx_universal_model() to support MetaNetX/MNXref Version 3.0
+  including new InChIKey value for metabolites and fully compartmentalized reactions
+* Added support for DBLINKS field in KEGG Reaction database entry
+
+Version 0.1.2 (June 13, 2017)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Updated compare_model() with better comparison of reaction definition and better
+  output formatting
+
+Version 0.1.1 (June 7, 2017)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Added more details on how models are compared
+
+Version 0.1.0 (May 30, 2017)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Initial version
 
 References
 ----------

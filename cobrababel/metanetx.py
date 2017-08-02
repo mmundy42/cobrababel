@@ -8,8 +8,11 @@ from cobra import Model, Metabolite, Reaction, DictList
 # Base URL for MetaNetX website
 metanetx_url = 'http://www.metanetx.org/cgi-bin/mnxget/mnxref/'
 
+# Supported MetaNetX version (corresponds to MNXref 3.0)
+metanetx_version = 'MNXref Version 2017/05/04'
+
 # Regular expression for metabolites in reaction equation
-metabolite_re = re.compile(r'(\d*\.\d+|\d+) (MNXM\d+)')
+metabolite_re = re.compile(r'(\d*\.\d+|\d+) (MNXM\d+|BIOMASS)@(MNXD[\dX]|BOUNDARY)')
 
 # Logger for this module
 LOGGER = logging.getLogger(__name__)
@@ -41,8 +44,12 @@ def create_metanetx_universal_model(validate=False, verbose=False):
         response.raise_for_status()
     LOGGER.info('Finished download of metabolite file')
     metabolite_list = response.text.split('\n')
+    version = metabolite_list[0].strip('# ')
+    if version != metanetx_version:
+        warn('MetaNetX version "{0}" in metabolite file is not supported version "{1}"'
+             .format(version, metanetx_version))
 
-    # Map field names to column numbers (hopefully MetaNetX doesn't change this).
+    # Map field names to column numbers (MetaNetX may add fields in future).
     field_names = {
         'MNX_ID': 0,
         'Description': 1,
@@ -51,12 +58,13 @@ def create_metanetx_universal_model(validate=False, verbose=False):
         'Mass': 4,
         'InChI': 5,
         'SMILES': 6,
-        'Source': 7
+        'Source': 7,
+        'InChIKey': 8
     }
 
-    # Accumulate Metabolite objects separately because it is faster than adding
-    # metabolites one at a time to a model.
-    metabolites = DictList()
+    # Accumulate all available Metabolite objects separately. Later when creating
+    # reactions, metabolites are put in a compartment.
+    all_metabolites = DictList()
 
     # Create Metabolite objects for all of the metabolites from the downloaded file.
     # Add all of the universal metabolites from the list.
@@ -65,12 +73,12 @@ def create_metanetx_universal_model(validate=False, verbose=False):
         if len(metabolite_list[index]) == 0 or metabolite_list[index][0] == '#':
             continue  # Skip empty lines and comment lines
         fields = metabolite_list[index].split('\t')
-        if len(fields) != 8:
+        if len(fields) < len(field_names):
             if verbose:
                 warn('Skipped metabolite on line {0} with missing fields: {1}'.format(index, metabolite_list[index]))
             continue
 
-        # Create cobra.Metabolite from MetaNetX metabolite.
+        # Create cobra.core.Metabolite from MetaNetX metabolite.
         metabolite = Metabolite(id=fields[field_names['MNX_ID']],
                                 name=fields[field_names['Description']],
                                 formula=fields[field_names['Formula']],
@@ -79,12 +87,41 @@ def create_metanetx_universal_model(validate=False, verbose=False):
         metabolite.notes['InChI'] = fields[field_names['InChI']]
         metabolite.notes['SMILES'] = fields[field_names['SMILES']]
         metabolite.notes['source'] = fields[field_names['Source']]
-        metabolites.append(metabolite)
-    LOGGER.info('Finished creating %d Metabolite objects', len(metabolites))
+        metabolite.notes['InChIKey'] = fields[field_names['InChIKey']]
+        all_metabolites.append(metabolite)
+    LOGGER.info('Finished creating %d Metabolite objects', len(all_metabolites))
 
-    # Add the metabolites to the universal model.
-    universal.add_metabolites(metabolites)
-    LOGGER.info('Finished adding Metabolite objects to universal model')
+    # Download the compartments file.
+    LOGGER.info('Started download of compartment file')
+    response = requests.get('{0}comp_prop.tsv'.format(metanetx_url))
+    if response.status_code != requests.codes.OK:
+        response.raise_for_status()
+    LOGGER.info('Finished download of compartment file')
+    compartment_list = response.text.split('\n')
+    version = compartment_list[0].strip('# ')
+    if version != metanetx_version:
+        warn('MetaNetX version "{0}" in compartment file is not supported version "{1}"'
+             .format(version, metanetx_version))
+
+    # Map field names to column numbers (MetaNetX may add fields in future).
+    field_names = {
+        'MNX_ID': 0,
+        'Description': 1,
+        'Source': 2
+    }
+
+    # Add the compartments to the universal model.
+    LOGGER.info('Started adding compartments from %d lines in file', len(compartment_list))
+    for index in range(len(compartment_list)):
+        if len(compartment_list[index]) == 0 or compartment_list[index][0] == '#':
+            continue  # Skip empty lines and comment lines
+        fields = compartment_list[index].split('\t')
+        if len(fields) < len(field_names):
+            if verbose:
+                warn('Skipped compartment on line {0} with missing fields: {1}'.format(index, compartment_list[index]))
+            continue
+        universal.compartments[fields[field_names['MNX_ID']]] = fields[field_names['Description']]
+    LOGGER.info('Finished adding {0} compartments to universal model'.format(len(universal.compartments)))
 
     # Download the reactions file.
     LOGGER.info('Started download of reaction file')
@@ -93,6 +130,10 @@ def create_metanetx_universal_model(validate=False, verbose=False):
         response.raise_for_status()
     LOGGER.info('Finished download of reaction file')
     reaction_list = response.text.split('\n')
+    version = reaction_list[0].strip('# ')
+    if version != metanetx_version:
+        warn('MetaNetX version "{0}" in reaction file is not supported version "{1}"'
+             .format(version, metanetx_version))
 
     # Map field names to column numbers (hopefully MetaNetX doesn't change this).
     field_names = {
@@ -104,9 +145,10 @@ def create_metanetx_universal_model(validate=False, verbose=False):
         'Source': 5
     }
 
-    # Accumulate Reaction objects separately because it is faster than adding
-    # reactions one at a time to a model.
+    # Accumulate Reaction and Metabolite objects separately because it is faster
+    # than adding them one at a time to a model.
     reactions = DictList()
+    metabolites = DictList()
 
     # Create Reaction objects for all of the reactions from the downloaded file.
     LOGGER.info('Started creating Reaction objects from %d lines in file', len(reaction_list))
@@ -119,18 +161,28 @@ def create_metanetx_universal_model(validate=False, verbose=False):
                 warn('Skipped reaction on line {0} with missing fields: {1}'.format(index, reaction_list[index]))
             continue
 
-        # Create cobra.Reaction from MetaNetX reaction.
-        metabolites = _parse_equation(fields[field_names['Equation']], universal)
-        if metabolites is None:
+        # Create cobra.core.Reaction from MetaNetX reaction.
+        metabolite_info = _parse_equation(fields[field_names['Equation']])
+        if metabolite_info is None:
             if verbose:
                 warn('Could not parse equation for reaction {0} on line {1}: {2}'
                      .format(fields[field_names['MNX_ID']], index, fields[field_names['Equation']]))
             continue
+        rxn_mets = dict()
+        for metabolite_id in metabolite_info:
+            try:
+                rxn_mets[metabolites.get_by_id(metabolite_id)] = metabolite_info[metabolite_id]['coefficient']
+            except KeyError:
+                metabolite = all_metabolites.get_by_id(metabolite_info[metabolite_id]['mnx_id']).copy()
+                metabolite.id = metabolite_id
+                metabolite.compartment = metabolite_info[metabolite_id]['compartment']
+                metabolites.append(metabolite)
+                rxn_mets[metabolite] = metabolite_info[metabolite_id]['coefficient']
         reaction = Reaction(id=fields[field_names['MNX_ID']],
                             name=fields[field_names['MNX_ID']],
                             lower_bound=-1000.0,
                             upper_bound=1000.0)
-        reaction.add_metabolites(metabolites)
+        reaction.add_metabolites(rxn_mets)
         if len(fields[field_names['EC']]) > 0:
             reaction.notes['EC_number'] = fields[field_names['EC']]
         if len(fields[field_names['Source']]) > 1:
@@ -155,26 +207,25 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     return universal
 
 
-def _parse_equation(equation, model):
-    """ Parse an equation string into metabolite dictionary for a Reaction object.
+def _parse_equation(equation):
+    """ Parse an equation string into a dictionary of metabolite information.
 
-        A MetaNetX equation string has reactants and products separated by an '='
-        character and metabolites separate by a '+' character. For example:
+    A MetaNetX equation string has reactants and products separated by an '='
+    character and metabolites separate by a '+' character. For example, this
+    is the equation for reaction MNXR95362:
 
-        2 MNXM2 + 2 MNXM947 = 1 MNXM4 + 2 MNXM470
+    2 MNXM2@MNXD1 + 2 MNXM947@MNXD1 = 1 MNXM4@MNXD1 + 2 MNXM470@MNXD1
 
     Parameters
     ----------
     equation : str
         Equation string from a MetaNetX reaction
-    model : cobra.Model
-        Model object (metabolites used in reaction must be in model)
 
     Returns
     -------
     dict or None
-        Dictionary of metabolites that can be used as input for Reaction.add_metabolites()
-        or None if equation string cannot be parsed
+        Dictionary of metabolite information or None if equation string cannot
+        be parsed
     """
 
     # Split the equation string into reactant and product strings.
@@ -182,21 +233,30 @@ def _parse_equation(equation, model):
     if len(parts) != 2:
         return None
 
-    # Build a dictionary of metabolites that can be used in a cobra.Reaction object.
+    # Build a dictionary keyed by metabolite ID with the information needed for
+    # setting the metabolites in a cobra.core.Reaction object.
     metabolites = dict()
     reactants = parts[0].split(' + ')
     for r in reactants:
         match = re.search(metabolite_re, r)
         if match is None:
             return None
-        met = model.metabolites.get_by_id(match.group(2))
-        metabolites[met] = -1.0 * float(match.group(1))
+        met_id = '{0}_{1}'.format(match.group(2), match.group(3))
+        metabolites[met_id]= {
+            'mnx_id': match.group(2),
+            'coefficient': -1.0 * float(match.group(1)),
+            'compartment': match.group(3)
+        }
     products = parts[1].split(' + ')
     for p in products:
         match = re.search(metabolite_re, p)
         if match is None:
             return None
-        met = model.metabolites.get_by_id(match.group(2))
-        metabolites[met] = float(match.group(1))
+        met_id = '{0}_{1}'.format(match.group(2), match.group(3))
+        metabolites[met_id]= {
+            'mnx_id': match.group(2),
+            'coefficient': float(match.group(1)),
+            'compartment': match.group(3)
+        }
 
     return metabolites
