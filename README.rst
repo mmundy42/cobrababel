@@ -131,11 +131,16 @@ command.
 Release Notes
 -------------
 
-Version 0.1.3 (August 3, 2017)
+Version 0.1.3 (August 4, 2017)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Updated create_metanetx_universal_model() to support MetaNetX/MNXref Version 3.0
   including new InChIKey value for metabolites and fully compartmentalized reactions
+  (see `#1 <https://github.com/mmundy42/cobrababel/issues/1>`_)
+* Fixed setting numeric fields in MetaNetX metabolites (see
+  `#2 <https://github.com/mmundy42/cobrababel/issues/2>`_)
+* Fixed failing tests due to missing comma (see
+  `#3 <https://github.com/mmundy42/cobrababel/issues/3>`_)
 * Added support for DBLINKS field in KEGG Reaction database entry
 
 Version 0.1.2 (June 13, 2017)

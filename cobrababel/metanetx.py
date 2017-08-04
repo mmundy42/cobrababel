@@ -21,6 +21,10 @@ LOGGER = logging.getLogger(__name__)
 def create_metanetx_universal_model(validate=False, verbose=False):
     """ Create an universal model from MetaNetX universal reactions and metabolites.
 
+    The MetaNetX metabolite list is very large and includes metabolites that are
+    not used in any reaction. The returned model only includes metabolites that
+    are actually used in a reaction.
+
     Parameters
     ----------
     validate : bool, optional
@@ -38,16 +42,7 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     universal = Model('metanetx_universal', name='MetaNetX universal model')
 
     # Download the metabolites file.
-    LOGGER.info('Started download of metabolite file')
-    response = requests.get('{0}chem_prop.tsv'.format(metanetx_url))
-    if response.status_code != requests.codes.OK:
-        response.raise_for_status()
-    LOGGER.info('Finished download of metabolite file')
-    metabolite_list = response.text.split('\n')
-    version = metabolite_list[0].strip('# ')
-    if version != metanetx_version:
-        warn('MetaNetX version "{0}" in metabolite file is not supported version "{1}"'
-             .format(version, metanetx_version))
+    metabolite_list = _download_metanetx_file('chem_prop.tsv')
 
     # Map field names to column numbers (MetaNetX may add fields in future).
     field_names = {
@@ -81,27 +76,25 @@ def create_metanetx_universal_model(validate=False, verbose=False):
         # Create cobra.core.Metabolite from MetaNetX metabolite.
         metabolite = Metabolite(id=fields[field_names['MNX_ID']],
                                 name=fields[field_names['Description']],
-                                formula=fields[field_names['Formula']],
-                                charge=fields[field_names['Charge']])
-        metabolite.notes['mass'] = fields[field_names['Mass']]
-        metabolite.notes['InChI'] = fields[field_names['InChI']]
-        metabolite.notes['SMILES'] = fields[field_names['SMILES']]
-        metabolite.notes['source'] = fields[field_names['Source']]
-        metabolite.notes['InChIKey'] = fields[field_names['InChIKey']]
+                                formula=fields[field_names['Formula']])
+        charge = fields[field_names['Charge']]
+        metabolite.charge = int(charge) if len(charge) > 0 and charge != 'NA' else None
+        mass = fields[field_names['Mass']]
+        if len(mass) > 0:
+            metabolite.notes['mass'] = float(mass)
+        metabolite.notes['InChI'] = fields[field_names['InChI']] \
+            if len(fields[field_names['InChI']]) > 0 else 'NA'
+        metabolite.notes['SMILES'] = fields[field_names['SMILES']] \
+            if len(fields[field_names['SMILES']]) > 0 else 'NA'
+        metabolite.notes['source'] = fields[field_names['Source']] \
+            if len(fields[field_names['Source']]) > 0 else 'NA'
+        metabolite.notes['InChIKey'] = fields[field_names['InChIKey']] \
+            if len(fields[field_names['InChIKey']]) > 0 else 'NA'
         all_metabolites.append(metabolite)
     LOGGER.info('Finished creating %d Metabolite objects', len(all_metabolites))
 
     # Download the compartments file.
-    LOGGER.info('Started download of compartment file')
-    response = requests.get('{0}comp_prop.tsv'.format(metanetx_url))
-    if response.status_code != requests.codes.OK:
-        response.raise_for_status()
-    LOGGER.info('Finished download of compartment file')
-    compartment_list = response.text.split('\n')
-    version = compartment_list[0].strip('# ')
-    if version != metanetx_version:
-        warn('MetaNetX version "{0}" in compartment file is not supported version "{1}"'
-             .format(version, metanetx_version))
+    compartment_list = _download_metanetx_file('comp_prop.tsv')
 
     # Map field names to column numbers (MetaNetX may add fields in future).
     field_names = {
@@ -124,16 +117,7 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     LOGGER.info('Finished adding {0} compartments to universal model'.format(len(universal.compartments)))
 
     # Download the reactions file.
-    LOGGER.info('Started download of reaction file')
-    response = requests.get('{0}reac_prop.tsv'.format(metanetx_url))
-    if response.status_code != requests.codes.OK:
-        response.raise_for_status()
-    LOGGER.info('Finished download of reaction file')
-    reaction_list = response.text.split('\n')
-    version = reaction_list[0].strip('# ')
-    if version != metanetx_version:
-        warn('MetaNetX version "{0}" in reaction file is not supported version "{1}"'
-             .format(version, metanetx_version))
+    reaction_list = _download_metanetx_file('reac_prop.tsv')
 
     # Map field names to column numbers (hopefully MetaNetX doesn't change this).
     field_names = {
@@ -162,7 +146,7 @@ def create_metanetx_universal_model(validate=False, verbose=False):
             continue
 
         # Create cobra.core.Reaction from MetaNetX reaction.
-        metabolite_info = _parse_equation(fields[field_names['Equation']])
+        metabolite_info = _parse_metanetx_equation(fields[field_names['Equation']])
         if metabolite_info is None:
             if verbose:
                 warn('Could not parse equation for reaction {0} on line {1}: {2}'
@@ -207,7 +191,34 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     return universal
 
 
-def _parse_equation(equation):
+def _download_metanetx_file(file_name):
+    """ Download and parse a MetaNetX property file.
+
+    Parameters
+    ----------
+    file_name : str
+        Name of property file to download from MetaNetX web site
+
+    Returns
+    -------
+    list
+        List of lines in property file
+    """
+
+    LOGGER.info('Started download of %s file', file_name)
+    response = requests.get('{0}{1}'.format(metanetx_url, file_name))
+    if response.status_code != requests.codes.OK:
+        response.raise_for_status()
+    LOGGER.info('Finished download of %s file', file_name)
+    property_list = response.text.split('\n')
+    version = property_list[0].strip('# ')
+    if version != metanetx_version:
+        warn('MetaNetX version "{0}" in {1} file is not supported version "{2}"'
+             .format(version, file_name, metanetx_version))
+    return property_list
+
+
+def _parse_metanetx_equation(equation):
     """ Parse an equation string into a dictionary of metabolite information.
 
     A MetaNetX equation string has reactants and products separated by an '='
@@ -242,7 +253,7 @@ def _parse_equation(equation):
         if match is None:
             return None
         met_id = '{0}_{1}'.format(match.group(2), match.group(3))
-        metabolites[met_id]= {
+        metabolites[met_id] = {
             'mnx_id': match.group(2),
             'coefficient': -1.0 * float(match.group(1)),
             'compartment': match.group(3)
@@ -253,7 +264,7 @@ def _parse_equation(equation):
         if match is None:
             return None
         met_id = '{0}_{1}'.format(match.group(2), match.group(3))
-        metabolites[met_id]= {
+        metabolites[met_id] = {
             'mnx_id': match.group(2),
             'coefficient': float(match.group(1)),
             'compartment': match.group(3)
