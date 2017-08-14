@@ -65,9 +65,7 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     # Add all of the universal metabolites from the list.
     LOGGER.info('Started creating Metabolite objects from %d lines in file', len(metabolite_list))
     for index in range(len(metabolite_list)):
-        if len(metabolite_list[index]) == 0 or metabolite_list[index][0] == '#':
-            continue  # Skip empty lines and comment lines
-        fields = metabolite_list[index].split('\t')
+        fields = metabolite_list[index]
         if len(fields) < len(field_names):
             if verbose:
                 warn('Skipped metabolite on line {0} with missing fields: {1}'.format(index, metabolite_list[index]))
@@ -106,9 +104,7 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     # Add the compartments to the universal model.
     LOGGER.info('Started adding compartments from %d lines in file', len(compartment_list))
     for index in range(len(compartment_list)):
-        if len(compartment_list[index]) == 0 or compartment_list[index][0] == '#':
-            continue  # Skip empty lines and comment lines
-        fields = compartment_list[index].split('\t')
+        fields = compartment_list[index]
         if len(fields) < len(field_names):
             if verbose:
                 warn('Skipped compartment on line {0} with missing fields: {1}'.format(index, compartment_list[index]))
@@ -137,9 +133,7 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     # Create Reaction objects for all of the reactions from the downloaded file.
     LOGGER.info('Started creating Reaction objects from %d lines in file', len(reaction_list))
     for index in range(len(reaction_list)):
-        if len(reaction_list[index]) == 0 or reaction_list[index][0] == '#':
-            continue  # Skip empty lines and comment lines
-        fields = reaction_list[index].split('\t')
+        fields = reaction_list[index]
         if len(fields) != len(field_names):
             if verbose:
                 warn('Skipped reaction on line {0} with missing fields: {1}'.format(index, reaction_list[index]))
@@ -191,18 +185,50 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     return universal
 
 
+def create_metanetx_metabolite_xref(namespace, file_name):
+    """ Create a CobraBabel metabolite cross reference file for MetaNetX and specified namespace.
+
+    Parameters
+    ----------
+    namespace : {'bigg', 'cco', 'chebi', 'envipath', 'go', 'hmdb', 'kegg', 'lipidmaps',
+                 'metacyc', 'reactome', 'rhea', 'sabiork', 'seed', 'slm'}
+        Namespace to cross reference to
+    file_name : str
+        Path to file for storing CobraBabel cross reference
+    """
+
+    _process_metanetx_xref(_download_metanetx_file('chem_xref.tsv'), namespace, file_name)
+    return
+
+
+def create_metanetx_reaction_xref(namespace, file_name):
+    """ Create a CobraBabel reaction cross reference file for MetaNetX and specified namespace.
+
+    Parameters
+    ----------
+    namespace : {'bigg', 'cco', 'chebi', 'envipath', 'go', 'hmdb', 'kegg', 'lipidmaps',
+                 'metacyc', 'reactome', 'rhea', 'sabiork', 'seed', 'slm'}
+        Namespace to cross reference to
+    file_name : str
+        Path to file for storing CobraBabel cross reference
+    """
+
+    _process_metanetx_xref(_download_metanetx_file('reac_xref.tsv'), namespace, file_name)
+    return
+
+
 def _download_metanetx_file(file_name):
-    """ Download and parse a MetaNetX property file.
+    """ Download and process a MetaNetX file.
 
     Parameters
     ----------
     file_name : str
-        Name of property file to download from MetaNetX web site
+        Name of file to download from MetaNetX web site
 
     Returns
     -------
     list
-        List of lines in property file
+        List of data fields from each line that is not a comment
     """
 
     LOGGER.info('Started download of %s file', file_name)
@@ -210,12 +236,21 @@ def _download_metanetx_file(file_name):
     if response.status_code != requests.codes.OK:
         response.raise_for_status()
     LOGGER.info('Finished download of %s file', file_name)
-    property_list = response.text.split('\n')
-    version = property_list[0].strip('# ')
+    all_lines = response.text.split('\n')
+
+    # Assume that MetaNetX files have a version string on the first line.
+    version = all_lines[0].strip('# ')
     if version != metanetx_version:
-        warn('MetaNetX version "{0}" in {1} file is not supported version "{2}"'
+        warn('MetaNetX version "{0}" in "{1}" file is not the supported version "{2}"'
              .format(version, file_name, metanetx_version))
-    return property_list
+
+    # Remove comment lines and separate lines into fields.
+    data = list()
+    for line in all_lines:
+        if len(line) == 0 or line[0] == '#':
+            continue  # Skip empty lines and comment lines
+        data.append(line.split('\t'))
+    return data
 
 
 def _parse_metanetx_equation(equation):
@@ -271,3 +306,41 @@ def _parse_metanetx_equation(equation):
         }
 
     return metabolites
+
+
+def _process_metanetx_xref(xref_list, namespace, file_name):
+    """ Process lines from cross reference file.
+
+    Parameters
+    ----------
+    xref_list : list
+        List of data fields from MetaNetX cross reference file
+    namespace : str
+        Namespace to cross reference to
+    file_name : str
+        Path to file for storing CobraBabel cross reference
+    """
+
+    # Extract the cross reference lines for the specified namespace.
+    namespace_list = [x for x in xref_list if x[0].startswith(namespace)]
+    if len(namespace_list) == 0:
+        raise ValueError('Namespace "{0}" is not available in cross reference file'
+                         .format(namespace))
+
+    # Map field names to column numbers (hopefully MetaNetX doesn't change this).
+    field_names = {
+        'XREF': 0,
+        'MNX_ID': 1,
+        'Evidence': 2,
+        'Description': 3
+    }
+
+    # Generate a CobraBabel cross reference file, removing namespace prefix from
+    # cross referenced ID.
+    prefix = len(namespace) + 1
+    with open(file_name, 'w') as handle:
+        handle.write('\t'.join(['metanetx', namespace]) + '\n')
+        for fields in namespace_list:
+            handle.write('\t'.join([fields[field_names['MNX_ID']], fields[field_names['XREF']][prefix:]]) + '\n')
+
+    return
