@@ -23,7 +23,7 @@ setup(
     setup_requires=[],
     install_requires=requirements,
     tests_require=['pytest', 'lxml'],
-    package_data={},
+    package_data={'': ['data/*', 'test/data/*']},
     author='Michael Mundy, Helena Mendes-Soares, Nicholas Chia',
     author_email='mundy.michael@mayo.edu',
     description='CobraBabel: COBRA Model Translator',
