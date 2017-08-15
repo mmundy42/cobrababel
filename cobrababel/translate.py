@@ -4,6 +4,7 @@
 import re
 import warnings
 
+
 def translate(model, reaction_xref_file_name, metabolite_xref_file_name, from_namespace, to_namespace):
     
     """ Translate IDs in a model from one namespace to another namespace
@@ -148,26 +149,3 @@ def translate(model, reaction_xref_file_name, metabolite_xref_file_name, from_na
     warn_text_m = "Could not convert name space for "+str(len(reactions_not_found_in_Xref))+" reactions"
     warnings.warn(warn_text_m)
     return output_model
-
-
-    
-"""
---------------------------------------------------
------ testing seed to vmh and vmh to seed --------
---------------------------------------------------
-import cobra
-seed_model = cobra.io.read_sbml_model("C:/Users/M179100/Desktop/226186.12.xml")
-vmh_model= cobra.io.read_sbml_model("C:/Users/M179100/Desktop/Btheta.xml")
-reaction_xref_file_name="C:/Users/M179100/GitHub/cobrababel/data/vmh_reaction_xref.tsv"
-metabolite_xref_file_name="C:/Users/M179100/GitHub/cobrababel/data/vmh_metabolite_xref.tsv"    
-''' seed to vmh model conversion '''
-from_namespace="seed"
-to_namespace="vmh"
-translate(seed_model, reaction_xref_file_name, metabolite_xref_file_name, from_namespace, to_namespace)
-''' vmh to seed model conversion '''
-from_namespace="vmh"
-to_namespace="seed"
-translate(vmh_model, reaction_xref_file_name, metabolite_xref_file_name, from_namespace, to_namespace)
-
-"""
-
