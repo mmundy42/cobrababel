@@ -28,22 +28,22 @@ class KeggEnzymeDatabase(KeggDatabase):
         self.records += enzymes
         return
     
-    def store(self, filename=None):
+    def store(self, file_name=None):
         """ Save the enzyme database to a flat file.
         
         Parameters
         ----------
-        filename : str, optional
+        file_name : str, optional
             Path to enzyme database file
         """
         
-        if filename is None:
-            filename = self.filename
+        if file_name is None:
+            file_name = self.filename
         
         # Convert all of the KeggEnzyme objects to flat file database records
         # and write the records to the file.
         self.records.sort()
-        with open(filename, 'w') as handle:
+        with open(file_name, 'w') as handle:
             for index in range(len(self.records)):
                 for line in self.records[index].make_record():
                     handle.write(line+'\n')
@@ -54,7 +54,7 @@ class KeggEnzymeDatabase(KeggDatabase):
         
         Parameters
         ----------
-        enzyme : KeggEnzyme
+        enzyme : kegg.KeggEnzyme
             Enzyme to add or replace
         """
 

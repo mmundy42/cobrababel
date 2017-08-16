@@ -5,32 +5,49 @@ class KeggReaction:
     
     """ A KEGG reaction record contains the following fields:
 
-        Entry   The KEGG REACTION database is a manually curated collection of biochemical reactions,
-                mostly enzymatic reactions but including some spontaneous reactions, which are derived
-                from KEGG ENZYME (Enzyme Nomenclature) or KEGG PATHWAY (KEGG metabolic pathway maps).
-                Each entry is identified by the unique identifier called the R number ('R' followed
-                by five-digit number).
-        Name    The name of the reaction, usually the systematic name of the enzyme that catalyzes the
-                reaction (can be not specified).
-        Definition    The chemical reaction in the form of an equation. The reaction is assumed to be
-                reversible and reactants (substrates and products) are separated by '<=>'. Each compound
-                in the left or the right side is separated by ' + '. There may be a coefficient before
-                the compound name.
-        Equation    The C number representation of the reaction equation with links to the COMPOUND
-                database entries.
-        Remark  The same reaction entries, if any, are given.
-        Comment Text information commenting on the reaction.
-        RPair   Links to the corresponding KEGG RPAIR database entries, which contain chemical structure
-                transformation patterns of reactant pairs (substrate-product pairs).
-        Reaction class  Links to the corresponding KEGG RCLASS database entries, which contain reaction
-                class information defined by chemical structure transformation patterns of substrate-
-                product pairs.
-        Enzyme  Links to the corresponding KEGG ENZYME database entries.
-        Pathway Links to the KEGG pathway maps, where the corresponding reaction is marked in red.
-        Orthology    Links to the corresponding KEGG ORTHOLOGY (KO) database entries.
-        Module  Links to the corresponding KEGG MODULE database entries.
-        Reference    References for the reaction.
-        DBLinks Links to outside databases
+    Entry
+        The KEGG REACTION database is a manually curated collection of biochemical
+        reactions, mostly enzymatic reactions but including some spontaneous
+        reactions, which are derived from KEGG ENZYME (Enzyme Nomenclature) or
+        KEGG PATHWAY (KEGG metabolic pathway maps). Each entry is identified by
+        the unique identifier called the R number ('R' followed by five-digit
+        number).
+    Name
+        The name of the reaction, usually the systematic name of the enzyme that
+        catalyzes the reaction (can be not specified).
+    Definition
+        The chemical reaction in the form of an equation. The reaction is assumed
+        to be reversible and reactants (substrates and products) are separated by
+        '<=>'. Each compound in the left or the right side is separated by ' + '.
+        There may be a coefficient before the compound name.
+    Equation
+        The C number representation of the reaction equation with links to the
+        COMPOUND database entries.
+    Remark
+        The same reaction entries, if any, are given.
+    Comment
+        Text information commenting on the reaction.
+    RPair
+        Links to the corresponding KEGG RPAIR database entries, which contain
+        chemical structure transformation patterns of reactant pairs
+        (substrate-product pairs).
+    Reaction class
+        Links to the corresponding KEGG RCLASS database entries, which contain
+        reaction class information defined by chemical structure transformation
+        patterns of substrate-product pairs.
+    Enzyme
+        Links to the corresponding KEGG ENZYME database entries.
+    Pathway
+        Links to the KEGG pathway maps, where the corresponding reaction is
+        marked in red.
+    Orthology
+        Links to the corresponding KEGG ORTHOLOGY (KO) database entries.
+    Module
+        Links to the corresponding KEGG MODULE database entries.
+    Reference
+        References for the reaction.
+    DBLinks
+        Links to outside databases
     """
     
     def __init__(self, record=None):

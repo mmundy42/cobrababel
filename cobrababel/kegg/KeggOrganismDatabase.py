@@ -313,7 +313,7 @@ class KeggOrganismDatabase(KeggDatabase):
 
         Returns
         -------
-        KeggOrganism
+        kegg.KeggOrganism
             Organism object with specified code
         """
 

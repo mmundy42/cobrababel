@@ -1,37 +1,54 @@
 class KeggEnzyme(object):
-    
     """ A KEGG enzyme record contains the following fields:
 
-        Entry    KEGG ENZYME contains the information about Enzyme Nomenclature obtained from the
-                 ExplorEnz database. Additional information is included both computationally and
-                 manually. Manually added information includes the KEGG reaction data with parent-child
-                 (general to more specific) relationship and the source organism and protein sequence
-                 information, whenever available, in each reference. Links to various data in KEGG and
-                 other databases are computationally generated. The accession number of an ENZYME entry
-                 is the EC (Enzyme Commission) number given by the Nomenclature Committee of the IUBMB
-                 and the IUPAC. It is preceded by EC here, simply because of a historical reason.
-        Name    The accepted name and alternative names of the enzyme.
-        Class   The class, subclass, and sub-subclass of the enzyme, which correspond to the first
-                three figures of the EC number.
-        Sysname    The systematic name of the enzyme given by the Nomenclature Committee. It represents
-                the nature of the chemical reaction.
-        Reaction(KEGG)    This field contains all the reactions (R numbers) with this EC number in KEGG.
-                Additional reactions are either examples of the general reaction formula by IUBMB,
-                designated by ">" for the parent-child relationship, or unrelated to the IUBMB reaction
-                formula designated by "(other)".
-        Substrate  The chemical compounds that appear on the left side of the reaction equation.
-        Product    The chemical compounds that appear on the right side of the reaction equation.
-        Comment    Text information commenting on the enzyme.
-        Pathway    Links to the KEGG pathway maps, where the corresponding enzyme is marked in red.
-        Orthology  Link to the K number entry in the KEGG Orthology (KO) database, which corresponds to
-                the ortholog group for the enzyme.
-        Genes   Links to the GENES database entries with the assignment (through the KO system) of the
-                corresponding EC number.
-        Reaction(IUBMB)    The chemical reaction catalyzed by the enzyme is shown in the form of an
-                equation or in a text description as defined by the IUBMB/IUPAC Nomenclature Committee.
-                The corresponding R number in the KEGG REACTION database is also shown.
-        History    Update history given by the IUBMB Enzyme Nomenclature Committee
-        Reference  References describing the enzyme.
+    Entry
+        KEGG ENZYME contains the information about Enzyme Nomenclature obtained
+        from the ExplorEnz database. Additional information is included both
+        computationally and manually. Manually added information includes the KEGG
+        reaction data with parent-child (general to more specific) relationship
+        and the source organism and protein sequence information, whenever available,
+        in each reference. Links to various data in KEGG and other databases are
+        computationally generated. The accession number of an ENZYME entry is the
+        EC (Enzyme Commission) number given by the Nomenclature Committee of the
+        IUBMB and the IUPAC. It is preceded by EC here, simply because of a
+        historical reason.
+    Name
+        The accepted name and alternative names of the enzyme.
+    Class
+        The class, subclass, and sub-subclass of the enzyme, which correspond to
+        the first three figures of the EC number.
+    Sysname
+        The systematic name of the enzyme given by the Nomenclature Committee.
+        It represents the nature of the chemical reaction.
+    Reaction(KEGG)
+        This field contains all the reactions (R numbers) with this EC number
+        in KEGG. Additional reactions are either examples of the general reaction
+        formula by IUBMB, designated by ">" for the parent-child relationship,
+        or unrelated to the IUBMB reaction formula designated by "(other)".
+    Substrate
+        The chemical compounds that appear on the left side of the reaction equation.
+    Product
+        The chemical compounds that appear on the right side of the reaction equation.
+    Comment
+        Text information commenting on the enzyme.
+    Pathway
+        Links to the KEGG pathway maps, where the corresponding enzyme is marked
+        in red.
+    Orthology
+        Link to the K number entry in the KEGG Orthology (KO) database, which
+        corresponds to the ortholog group for the enzyme.
+    Genes
+        Links to the GENES database entries with the assignment (through the KO
+        system) of the corresponding EC number.
+    Reaction(IUBMB)
+        The chemical reaction catalyzed by the enzyme is shown in the form of
+        an equation or in a text description as defined by the IUBMB/IUPAC
+        Nomenclature Committee. The corresponding R number in the KEGG REACTION
+        database is also shown.
+    History
+        Update history given by the IUBMB Enzyme Nomenclature Committee
+    Reference
+        References describing the enzyme.
     """
     
     def __init__(self, record=None):

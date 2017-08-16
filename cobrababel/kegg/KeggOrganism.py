@@ -9,15 +9,21 @@ class KeggOrganism:
     
     """ A KEGG organism record contains the following fields:
 
-        ID      Each entry is identified by the unique identifier called the T number ('T' followed
-                by five-digit number).
-        Code    The code for the organism is a three or four character string based on the name
-                and is used for identifying genes in complete genomes.
-        Name    The scientific name of the organism (common name in parenthesis).
-        Taxonomy    The taxonomy of the organism as a string with levels separated by semicolons.
-        OtuRep  Flag indicating if the organism is representative of the OTU.
+    ID
+        Each entry is identified by the unique identifier called the T number
+        ('T' followed by five-digit number).
+    Code
+        The code for the organism is a three or four character string based on
+        the name and is used for identifying genes in complete genomes.
+    Name
+        The scientific name of the organism (common name in parenthesis).
+    Taxonomy
+        The taxonomy of the organism as a string with levels separated by semicolons.
+    OtuRep
+        Flag indicating if the organism is representative of the OTU.
 
-        Each record is a single line with fields separated by tabs (which is different from other record types).
+    Each record is a single line with fields separated by tabs (which is different
+    from other record types).
     """
     
     def __init__(self, record=None):

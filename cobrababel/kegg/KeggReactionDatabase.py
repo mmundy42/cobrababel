@@ -1,6 +1,7 @@
 from .KeggDatabase import KeggDatabase
 from .KeggReaction import KeggReaction
 
+
 class KeggReactionDatabase(KeggDatabase):
     """ Manage a KEGG reaction flat file database. """
 
@@ -11,7 +12,7 @@ class KeggReactionDatabase(KeggDatabase):
         ----------
         filename : str
             Path to reaction database file
-\        """
+        """
 
         super(KeggReactionDatabase, self).__init__(filename)
         return
@@ -24,22 +25,22 @@ class KeggReactionDatabase(KeggDatabase):
         self.records += reactions
         return
     
-    def store(self, filename=None):
+    def store(self, file_name=None):
         """ Save the reaction database to a flat file.
 
         Parameters
         ----------
-        filename : str, optional
+        file_name : str, optional
             Path to reaction database file
-\       """
+        """
         
-        if filename is None:
-            filename = self.filename
+        if file_name is None:
+            file_name = self.filename
             
         # Convert all of the KeggReaction objects to flat file database records
         # and write the records to the file.    
         self.records.sort()
-        with open(filename, 'w') as handle:
+        with open(file_name, 'w') as handle:
             for index in range(len(self.records)):
                 for line in self.records[index].make_record():
                     handle.write(line + '\n')
@@ -50,7 +51,7 @@ class KeggReactionDatabase(KeggDatabase):
 
         Parameters
         ----------
-        reaction : KeggReaction
+        reaction : kegg.KeggReaction
             Reaction to add or replace
         """
 

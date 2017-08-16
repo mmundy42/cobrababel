@@ -49,21 +49,21 @@ class KeggDatabase(object):
                 record = list()
                 continue
 
-    def store(self, filename=None):
+    def store(self, file_name=None):
         """ Save the database to a flat file.
 
         Parameters
         ----------
-        filename : str, optional
+        file_name : str, optional
             Path to database file
-\       """
+        """
 
-        if filename is None:
-            filename = self.filename
+        if file_name is None:
+            file_name = self.filename
 
         # Convert all of the record objects to flat file database records and write to the file.
         self.records.sort()
-        with open(filename, 'w') as handle:
+        with open(file_name, 'w') as handle:
             for index in range(len(self.records)):
                 for line in self.records[index].make_record():
                     handle.write(line + '\n')
