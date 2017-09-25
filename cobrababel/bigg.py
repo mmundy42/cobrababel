@@ -110,7 +110,7 @@ def create_cobra_model_from_bigg_model(bigg_id, validate=False):
 
     Parameters
     ----------
-    bigg_id: str
+    bigg_id : str
         ID of BiGG model
     validate : bool, optional
         When True, perform validity checks on COBRA model
@@ -186,7 +186,7 @@ def get_bigg_metabolite(bigg_id, model_bigg_id='universal'):
 
     Parameters
     ----------
-    bigg_id: str
+    bigg_id : str
         ID of BiGG metabolite
     model_bigg_id : str, optional
         ID of model containing metabolite
@@ -214,9 +214,9 @@ def add_bigg_metabolites(bigg_list, model):
 
     Parameters
     ----------
-    bigg_list: list of dict
+    bigg_list : list of dict
         List of dictionaries with BiGG metabolite data
-    model: cobra.core.Model
+    model : cobra.core.Model
         Model to add metabolites to
     """
 
@@ -270,7 +270,7 @@ def get_bigg_reaction(bigg_id, model_bigg_id='universal'):
 
     Parameters
     ----------
-    bigg_id: str
+    bigg_id : str
         ID of BiGG reaction
     model_bigg_id : str, optional
         ID of model containing reaction
@@ -298,9 +298,9 @@ def add_bigg_reactions(bigg_list, model, ignore_pseudo_reactions=True):
 
     Parameters
     ----------
-    bigg_list: list of dict
+    bigg_list : list of dict
         List of dictionaries with BiGG reaction data
-    model: cobra.core.Model
+    model : cobra.core.Model
         Model to add reactions to
     ignore_pseudo_reactions : bool, optional
         When True, do not include pseudo reactions
@@ -330,3 +330,69 @@ def add_bigg_reactions(bigg_list, model, ignore_pseudo_reactions=True):
     # Add all of the reactions to the model.
     model.add_reactions(reactions)
     return
+
+
+def build_bigg_xref_files(model, reaction_xref_file_name, metabolite_xref_file_name, to_namespace):
+    """ Build cross reference files using a model created from BiGG.
+
+    Parameters
+    ----------
+    model : cobra.core.Model
+        COBRA model object created from BiGG database
+    reaction_xref_file_name : str
+        Path to cross reference file with ID mapping for reactions
+    metabolite_xref_file_name : str
+        Path to cross reference file with ID mapping for metabolites
+    to_namespace : str
+        Namespace of IDs to cross reference to
+    """
+
+    # if model.notes['source'] != 'BiGG':
+    #     raise ValueError('Model {0} ({1}) is not a BiGG model'.format(model.id, model.name))
+    if to_namespace not in get_bigg_alias_names(model):
+        raise ValueError('Model {0} ({1}) does not have aliases for namespace "{2}"'
+                         .format(model.id, model.name, to_namespace))
+
+    # Build the reaction cross reference from the reaction note for aliases.
+    with open(reaction_xref_file_name, 'w') as handle:
+        xref_reactions = model.reactions.query(lambda x: to_namespace in x['aliases'], 'notes')
+        if len(xref_reactions) == 0:
+            raise ValueError('Model {0} ({1}) does not have any reactions with aliases for namespace {2}'
+                             .format(model.id, model.name, to_namespace))
+        for reaction in xref_reactions:
+            for alias in reaction.notes['aliases'][to_namespace]:
+                handle.write('{0}\t{1}\n'.format(reaction.id, alias['id']))
+
+    # Build the metabolite cross reference from the metabolite note for aliases.
+    with open(metabolite_xref_file_name, 'w') as handle:
+        xref_metabolites = model.metabolites.query(lambda x: to_namespace in x['aliases'], 'notes')
+        if len(xref_metabolites) == 0:
+            raise ValueError('Model {0} ({1}) does not have any metabolites with aliases for namespace {2}'
+                             .format(model.id, model.name, to_namespace))
+        for metabolite in xref_metabolites:
+            for alias in metabolite.notes['aliases'][to_namespace]:
+                handle.write('{0}\t{1}\n'.format(metabolite.id, alias['id']))
+
+    return
+
+
+def get_bigg_alias_names(model):
+    """ Get the set of alias names in a model created from BiGG.
+
+    Parameters
+    ----------
+    model : cobra.core.Model
+        COBRA model object created from BiGG database
+
+    Returns
+    -------
+    set
+        Set of alias names from notes attribute in reactions and metabolites
+    """
+
+    names = set()
+    for rxn in model.reactions:
+        names.update(set(rxn.notes['aliases'].keys()))
+    for met in model.metabolites:
+        names.update(set(met.notes['aliases'].keys()))
+    return names
