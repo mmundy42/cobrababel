@@ -17,13 +17,15 @@ PAUSE_COUNT = 500
 LOGGER = logging.getLogger(__name__)
 
 
-def create_bigg_universal_model(validate=False):
+def create_bigg_universal_model(validate=False, ignore_pseudo_reactions=True):
     """ Create an universal model from BiGG universal reactions and metabolites.
 
     Parameters
     ----------
     validate : bool, optional
         When True, perform validity checks on universal COBRA model
+    ignore_pseudo_reactions : bool, optional
+        When True, do not include pseudo reactions
 
     Returns
     -------
@@ -93,7 +95,7 @@ def create_bigg_universal_model(validate=False):
 
     # Add the reactions to the universal model.
     LOGGER.info('Started adding %d Reaction objects to universal model', len(reactions))
-    add_bigg_reactions(reactions, universal)
+    add_bigg_reactions(reactions, universal, ignore_pseudo_reactions)
     LOGGER.info('Finished adding Reaction objects to universal model')
 
     # If requested, validate the COBRA model.
@@ -291,7 +293,7 @@ def get_bigg_reaction(bigg_id, model_bigg_id='universal'):
     return response.json()
 
 
-def add_bigg_reactions(bigg_list, model):
+def add_bigg_reactions(bigg_list, model, ignore_pseudo_reactions=True):
     """ Create a COBRA reaction from a BiGG reaction.
 
     Parameters
@@ -300,11 +302,15 @@ def add_bigg_reactions(bigg_list, model):
         List of dictionaries with BiGG reaction data
     model: cobra.core.Model
         Model to add reactions to
+    ignore_pseudo_reactions : bool, optional
+        When True, do not include pseudo reactions
     """
 
     # Create a Reaction object for each BiGG reaction.
     reactions = DictList()
     for bigg_reaction in bigg_list:
+        if bigg_reaction['pseudoreaction'] and ignore_pseudo_reactions:
+            continue
         reaction = Reaction(id=bigg_reaction['bigg_id'], name=bigg_reaction['name'])
         reaction.notes['aliases'] = bigg_reaction['database_links']
         metabolites = dict()
