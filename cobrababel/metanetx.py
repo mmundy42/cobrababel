@@ -40,6 +40,7 @@ def create_metanetx_universal_model(validate=False, verbose=False):
 
     # Create an empty model.
     universal = Model('metanetx_universal', name='MetaNetX universal model')
+    universal.notes['source'] = 'MetaNetX'
 
     # Download the metabolites file.
     metabolite_list = _download_metanetx_file('chem_prop.tsv')

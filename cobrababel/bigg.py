@@ -42,6 +42,7 @@ def create_bigg_universal_model(validate=False, ignore_pseudo_reactions=True):
     # Create an empty model.
     universal = Model('bigg_universal', name='BiGG universal model {0}'.format(version['bigg_models_version']))
     universal.notes['last_updated'] = version['last_updated']
+    universal.notes['source'] = 'BiGG'
 
     # Get the list of universal metabolites.
     LOGGER.info('Started download of universal metabolite list')
@@ -142,6 +143,7 @@ def create_cobra_model_from_bigg_model(bigg_id, validate=False):
     model.notes['genome_name'] = details['genome_name']
     model.notes['reference_type'] = details['reference_type']
     model.notes['reference_id'] = details['reference_id']
+    model.notes['source'] = 'BiGG'
 
     # Confirm a few basics.
     if len(model.reactions) != details['reaction_count']:
@@ -351,8 +353,8 @@ def create_bigg_xref(model, to_namespace, reaction_xref_file_name, metabolite_xr
         Name of alias for metabolites
     """
 
-    # if model.notes['source'] != 'BiGG':
-    #     raise ValueError('Model {0} ({1}) is not a BiGG model'.format(model.id, model.name))
+    if model.notes['source'] != 'BiGG':
+        warn('Model {0} ({1}) is not a BiGG model'.format(model.id, model.name))
     if reaction_alias_name is None:
         reaction_alias_name = to_namespace
     if metabolite_alias_name is None:

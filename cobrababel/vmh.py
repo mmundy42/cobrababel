@@ -39,6 +39,7 @@ def create_cobra_model_from_agora_model(agora_name, validate=False):
     # Convert to a cobra.Model object.
     with io.BytesIO(response.content) as f:
         model = read_sbml_model(f)
+    model.notes['source'] = 'VMH'
 
     # If requested, validate the COBRA model.
     if validate:
@@ -70,6 +71,7 @@ def create_cobra_model_from_vmh_recon2(validate=False):
     # Convert to a cobra.Model object.
     temp_file = join(gettempdir(), recon2_file_name)
     model = load_matlab_model(temp_file)
+    model.notes['source'] = 'VMH'
     unlink(temp_file)
 
     # If requested, validate the COBRA model.
