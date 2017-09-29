@@ -250,8 +250,7 @@ def add_bigg_metabolites(bigg_list, model):
                     metabolite.charge = bigg_metabolite['charges'][0]
             except KeyError:
                 pass
-        if len(bigg_metabolite['database_links']) > 0:
-            metabolite.notes['aliases'] = bigg_metabolite['database_links']
+        metabolite.notes['aliases'] = bigg_metabolite['database_links']
         metabolites.append(metabolite)
 
         if compartment not in model.compartments:
@@ -332,45 +331,53 @@ def add_bigg_reactions(bigg_list, model, ignore_pseudo_reactions=True):
     return
 
 
-def build_bigg_xref_files(model, reaction_xref_file_name, metabolite_xref_file_name, to_namespace):
-    """ Build cross reference files using a model created from BiGG.
+def create_bigg_xref(model, to_namespace, reaction_xref_file_name, metabolite_xref_file_name,
+                     reaction_alias_name=None, metabolite_alias_name=None):
+    """ Create cross reference files using a model created from BiGG.
 
     Parameters
     ----------
     model : cobra.core.Model
         COBRA model object created from BiGG database
+    to_namespace : str
+        Namespace of IDs to cross reference to
     reaction_xref_file_name : str
         Path to cross reference file with ID mapping for reactions
     metabolite_xref_file_name : str
         Path to cross reference file with ID mapping for metabolites
-    to_namespace : str
-        Namespace of IDs to cross reference to
+    reaction_alias_name : str, optional
+        Name of alias for reactions
+    metabolite_alias_name : str, optional
+        Name of alias for metabolites
     """
 
     # if model.notes['source'] != 'BiGG':
     #     raise ValueError('Model {0} ({1}) is not a BiGG model'.format(model.id, model.name))
-    if to_namespace not in get_bigg_alias_names(model):
-        raise ValueError('Model {0} ({1}) does not have aliases for namespace "{2}"'
-                         .format(model.id, model.name, to_namespace))
+    if reaction_alias_name is None:
+        reaction_alias_name = to_namespace
+    if metabolite_alias_name is None:
+        metabolite_alias_name = to_namespace
 
     # Build the reaction cross reference from the reaction note for aliases.
     with open(reaction_xref_file_name, 'w') as handle:
-        xref_reactions = model.reactions.query(lambda x: to_namespace in x['aliases'], 'notes')
+        handle.write('bigg\t{0}\n'.format(to_namespace))
+        xref_reactions = model.reactions.query(lambda x: reaction_alias_name in x['aliases'], 'notes')
         if len(xref_reactions) == 0:
-            raise ValueError('Model {0} ({1}) does not have any reactions with aliases for namespace {2}'
-                             .format(model.id, model.name, to_namespace))
+            raise ValueError('Model {0} ({1}) does not have any reactions with alias name {2}'
+                             .format(model.id, model.name, reaction_alias_name))
         for reaction in xref_reactions:
-            for alias in reaction.notes['aliases'][to_namespace]:
+            for alias in reaction.notes['aliases'][reaction_alias_name]:
                 handle.write('{0}\t{1}\n'.format(reaction.id, alias['id']))
 
     # Build the metabolite cross reference from the metabolite note for aliases.
     with open(metabolite_xref_file_name, 'w') as handle:
-        xref_metabolites = model.metabolites.query(lambda x: to_namespace in x['aliases'], 'notes')
+        handle.write('bigg\t{0}\n'.format(to_namespace))
+        xref_metabolites = model.metabolites.query(lambda x: metabolite_alias_name in x['aliases'], 'notes')
         if len(xref_metabolites) == 0:
-            raise ValueError('Model {0} ({1}) does not have any metabolites with aliases for namespace {2}'
-                             .format(model.id, model.name, to_namespace))
+            raise ValueError('Model {0} ({1}) does not have any metabolites with alias name {2}'
+                             .format(model.id, model.name, metabolite_alias_name))
         for metabolite in xref_metabolites:
-            for alias in metabolite.notes['aliases'][to_namespace]:
+            for alias in metabolite.notes['aliases'][metabolite_alias_name]:
                 handle.write('{0}\t{1}\n'.format(metabolite.id, alias['id']))
 
     return
@@ -392,7 +399,13 @@ def get_bigg_alias_names(model):
 
     names = set()
     for rxn in model.reactions:
-        names.update(set(rxn.notes['aliases'].keys()))
+        try:
+            names.update(set(rxn.notes['aliases'].keys()))
+        except KeyError:
+            pass
     for met in model.metabolites:
-        names.update(set(met.notes['aliases'].keys()))
+        try:
+            names.update(set(met.notes['aliases'].keys()))
+        except KeyError:
+            pass
     return names

@@ -185,35 +185,35 @@ def create_metanetx_universal_model(validate=False, verbose=False):
     return universal
 
 
-def create_metanetx_metabolite_xref(namespace, file_name):
+def create_metanetx_metabolite_xref(to_namespace, file_name):
     """ Create a CobraBabel metabolite cross reference file for MetaNetX and specified namespace.
 
     Parameters
     ----------
-    namespace : {'bigg', 'cco', 'chebi', 'envipath', 'go', 'hmdb', 'kegg', 'lipidmaps',
-                 'metacyc', 'reactome', 'rhea', 'sabiork', 'seed', 'slm'}
+    to_namespace : {'bigg', 'cco', 'chebi', 'envipath', 'go', 'hmdb', 'kegg', 'lipidmaps',
+                    'metacyc', 'reactome', 'rhea', 'sabiork', 'seed', 'slm'}
         Namespace to cross reference to
     file_name : str
         Path to file for storing CobraBabel cross reference
     """
 
-    _process_metanetx_xref(_download_metanetx_file('chem_xref.tsv'), namespace, file_name)
+    _process_metanetx_xref(_download_metanetx_file('chem_xref.tsv'), to_namespace, file_name)
     return
 
 
-def create_metanetx_reaction_xref(namespace, file_name):
+def create_metanetx_reaction_xref(to_namespace, file_name):
     """ Create a CobraBabel reaction cross reference file for MetaNetX and specified namespace.
 
     Parameters
     ----------
-    namespace : {'bigg', 'cco', 'chebi', 'envipath', 'go', 'hmdb', 'kegg', 'lipidmaps',
-                 'metacyc', 'reactome', 'rhea', 'sabiork', 'seed', 'slm'}
+    to_namespace : {'bigg', 'cco', 'chebi', 'envipath', 'go', 'hmdb', 'kegg', 'lipidmaps',
+                    'metacyc', 'reactome', 'rhea', 'sabiork', 'seed', 'slm'}
         Namespace to cross reference to
     file_name : str
         Path to file for storing CobraBabel cross reference
     """
 
-    _process_metanetx_xref(_download_metanetx_file('reac_xref.tsv'), namespace, file_name)
+    _process_metanetx_xref(_download_metanetx_file('reac_xref.tsv'), to_namespace, file_name)
     return
 
 
@@ -308,24 +308,24 @@ def _parse_metanetx_equation(equation):
     return metabolites
 
 
-def _process_metanetx_xref(xref_list, namespace, file_name):
+def _process_metanetx_xref(xref_list, to_namespace, file_name):
     """ Process lines from cross reference file.
 
     Parameters
     ----------
     xref_list : list
         List of data fields from MetaNetX cross reference file
-    namespace : str
+    to_namespace : str
         Namespace to cross reference to
     file_name : str
         Path to file for storing CobraBabel cross reference
     """
 
-    # Extract the cross reference lines for the specified namespace.
-    namespace_list = [x for x in xref_list if x[0].startswith(namespace)]
+    # Extract the cross reference lines for the specified to_namespace.
+    namespace_list = [x for x in xref_list if x[0].startswith(to_namespace)]
     if len(namespace_list) == 0:
         raise ValueError('Namespace "{0}" is not available in cross reference file'
-                         .format(namespace))
+                         .format(to_namespace))
 
     # Map field names to column numbers (hopefully MetaNetX doesn't change this).
     field_names = {
@@ -335,11 +335,11 @@ def _process_metanetx_xref(xref_list, namespace, file_name):
         'Description': 3
     }
 
-    # Generate a CobraBabel cross reference file, removing namespace prefix from
+    # Generate a CobraBabel cross reference file, removing to_namespace prefix from
     # cross referenced ID.
-    prefix = len(namespace) + 1
+    prefix = len(to_namespace) + 1
     with open(file_name, 'w') as handle:
-        handle.write('\t'.join(['metanetx', namespace]) + '\n')
+        handle.write('\t'.join(['metanetx', to_namespace]) + '\n')
         for fields in namespace_list:
             handle.write('\t'.join([fields[field_names['MNX_ID']], fields[field_names['XREF']][prefix:]]) + '\n')
 

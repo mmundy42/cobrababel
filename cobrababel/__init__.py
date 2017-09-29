@@ -1,5 +1,6 @@
 from .bigg import create_bigg_universal_model, get_bigg_model_list, create_cobra_model_from_bigg_model, \
-    get_bigg_metabolite, add_bigg_metabolites, get_bigg_reaction, add_bigg_reactions
+    get_bigg_metabolite, add_bigg_metabolites, get_bigg_reaction, add_bigg_reactions, \
+    create_bigg_xref, get_bigg_alias_names
 from .metanetx import create_metanetx_universal_model, create_metanetx_metabolite_xref, \
     create_metanetx_reaction_xref
 from .source import create_universal_model_from_source, load_model_from_file
